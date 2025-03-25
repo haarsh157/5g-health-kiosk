@@ -6,6 +6,9 @@ import Login from './pages/login';
 import Signup from './pages/signup';
 import Homepage from './pages/homePage';
 import HeightMeasurement from './pages/Services/heightMeasurement';
+import WeightMeasurement from './pages/Services/weightMeasurement';
+import TemperatureMeasurement from './pages/Services/tempratureMeasurement';
+import OximeterMeasurement from './pages/Services/oximeter';
 
 function App() {
   return (
@@ -18,6 +21,9 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<Homepage />} />
           <Route path="/height" element={<HeightMeasurement />} />
+          <Route path="/weight" element={<WeightMeasurement />} />
+          <Route path="/temperature" element={<TemperatureMeasurement />} />
+          <Route path="/oximeter" element={<OximeterMeasurement />} />
         </Routes>
       </Router>
     </div>

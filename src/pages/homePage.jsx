@@ -43,14 +43,12 @@ export default function Homepage() {
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-teal-50">
-      {/* Main Content Container */}
+
       <div className="w-full max-w-4xl min-h-[80%] p-10 rounded-xl flex flex-col items-center justify-center bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl">
-        {/* Main Title */}
         <h1 className="text-4xl font-bold text-gray-800 mb-12 font-sans tracking-tight">
           Select a Service
         </h1>
 
-        {/* Services Grid - Dynamic layout */}
         <div className={`w-full grid ${getGridLayout()} gap-6 place-items-center`}>
           {services.map((service) => (
             <div
@@ -67,7 +65,6 @@ export default function Homepage() {
         </div>
       </div>
 
-      {/* Language Button */}
       <button className="fixed bottom-8 right-8 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 text-2xl cursor-pointer">
         <img src={lang} alt="Language" className="w-5 h-5" />
         <span>Change Language</span>

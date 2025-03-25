@@ -1,34 +1,33 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import lang from "../../assets/Vector.png";
-import userheight from "../../assets/height.png";
+import userTemperature from "../../assets/Group 9.png"; 
 import back from "../../assets/mdi_arrow-back-circle.png";
 
-export default function HeightMeasurement() {
+export default function TemperatureMeasurement() {
   const navigate = useNavigate();
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [height, setHeight] = useState({ cm: 175, feet: "5'9\"" }); 
+  const [temperature, setTemperature] = useState({ celsius: 36.5, fahrenheit: 97.7 });
   const steps = ["Height", "Weight", "Temperature", "Oximeter"];
-  const currentStep = 0; 
+  const currentStep = 2;
 
   const handleMeasureClick = () => {
     setIsMeasuring(true);
     setTimeout(() => {
       setIsMeasuring(false);
       setShowResult(true);
-      const randomCm = Math.floor(Math.random() * 50) + 150;
-      const feet = Math.floor(randomCm / 30.48);
-      const inches = Math.round((randomCm % 30.48) / 2.54);
-      setHeight({
-        cm: randomCm,
-        feet: `${feet} feet ${inches} inches`
+      const randomCelsius = (Math.random() * 4 + 35).toFixed(1);
+      const fahrenheit = ((randomCelsius * 9/5) + 32).toFixed(1);
+      setTemperature({
+        celsius: randomCelsius,
+        fahrenheit: fahrenheit
       });
     }, 3000);
   };
 
   const handleContinue = () => {
-    navigate("/weight"); 
+    navigate("/oximeter");
   };
 
   return (
@@ -84,13 +83,13 @@ export default function HeightMeasurement() {
         {!isMeasuring && !showResult ? (
           <>
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-12 font-sans">
-              Height Measurement
+              Temperature Measurement
             </h1>
             <div className="flex">
-              <img src={userheight} alt="Language" />
+              <img src={userTemperature} alt="Temperature" />
               <div className="flex flex-col items-center gap-4 w-[50%] justify-center">
                 <h2 className="text-2xl font-bold text-center text-[#005553BF]">
-                  Stand Exactly below the Height Measurement Sensor
+                  Place your finger on the temperature sensor
                 </h2>
                 <button
                   onClick={handleMeasureClick}
@@ -104,7 +103,7 @@ export default function HeightMeasurement() {
         ) : isMeasuring ? (
           <div className="flex flex-col items-center justify-center gap-8">
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-12 font-sans">
-              Height Measurement
+              Temperature Measurement
             </h1>
             <div className="relative w-64 h-64 flex items-center justify-center">
               <div className="absolute w-full h-full rounded-full border-8 border-[#00555340]"></div>
@@ -114,33 +113,23 @@ export default function HeightMeasurement() {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-center text-[#005553BF]">
-              Measuring Height...
+              Measuring Temperature...
               <br />
-              Stand Exactly below the Height Measurement Sensor
+              Keep your finger steady on the sensor
             </h2>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-8 w-full">
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-4 font-sans">
-              Your Height Measurement
+              Your Temperature Measurement
             </h1>
             
             <div className="flex flex-col items-center justify-center bg-white rounded-2xl p-8 shadow-lg w-full max-w-md">
               <div className="text-5xl font-bold text-[#005553BF] mb-2">
-                {height.cm} cm
+                {temperature.fahrenheit} °F
               </div>
               <div className="text-3xl text-[#005553BF] mb-6">
-                {height.feet}
-              </div>
-              <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
-                  style={{ width: `${(height.cm / 200) * 100}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between w-full text-sm text-gray-600 mt-2">
-                <span>100cm</span>
-                <span>200cm</span>
+                {temperature.celsius} °C
               </div>
             </div>
             
@@ -148,7 +137,7 @@ export default function HeightMeasurement() {
               onClick={handleContinue}
               className="mt-8 px-12 py-4 rounded-full bg-[#005553BF] text-white text-2xl font-bold hover:bg-[#009f96] transition-colors duration-200 cursor-pointer shadow-lg"
             >
-              Continue to Weight Measurement
+              Continue to Oximeter Measurement
             </button>
           </div>
         )}

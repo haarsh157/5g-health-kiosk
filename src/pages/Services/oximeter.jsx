@@ -1,34 +1,36 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import lang from "../../assets/Vector.png";
-import userheight from "../../assets/height.png";
+import userOximeter from "../../assets/Group 9.png"; // Make sure to add this image
 import back from "../../assets/mdi_arrow-back-circle.png";
 
-export default function HeightMeasurement() {
+export default function OximeterMeasurement() {
   const navigate = useNavigate();
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [height, setHeight] = useState({ cm: 175, feet: "5'9\"" }); 
+  const [measurement, setMeasurement] = useState({ 
+    spo2: 98, 
+    pulse: 72 
+  });
   const steps = ["Height", "Weight", "Temperature", "Oximeter"];
-  const currentStep = 0; 
+  const currentStep = 3;
 
   const handleMeasureClick = () => {
     setIsMeasuring(true);
     setTimeout(() => {
       setIsMeasuring(false);
       setShowResult(true);
-      const randomCm = Math.floor(Math.random() * 50) + 150;
-      const feet = Math.floor(randomCm / 30.48);
-      const inches = Math.round((randomCm % 30.48) / 2.54);
-      setHeight({
-        cm: randomCm,
-        feet: `${feet} feet ${inches} inches`
+      const randomSpO2 = Math.floor(Math.random() * 6) + 95; // 95-100%
+      const randomPulse = Math.floor(Math.random() * 40) + 60; // 60-100 bpm
+      setMeasurement({
+        spo2: randomSpO2,
+        pulse: randomPulse
       });
     }, 3000);
   };
 
-  const handleContinue = () => {
-    navigate("/weight"); 
+  const handleFinish = () => {
+    navigate("/results");
   };
 
   return (
@@ -80,17 +82,18 @@ export default function HeightMeasurement() {
         </div>
       </div>
 
+      {/* Main Content Container */}
       <div className="w-full max-w-4xl min-h-[80%] p-10 rounded-xl flex flex-col items-center justify-center bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl">
         {!isMeasuring && !showResult ? (
           <>
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-12 font-sans">
-              Height Measurement
+              Oximeter Measurement
             </h1>
             <div className="flex">
-              <img src={userheight} alt="Language" />
+              <img src={userOximeter} alt="Oximeter" />
               <div className="flex flex-col items-center gap-4 w-[50%] justify-center">
                 <h2 className="text-2xl font-bold text-center text-[#005553BF]">
-                  Stand Exactly below the Height Measurement Sensor
+                  Place your finger on the oximeter sensor
                 </h2>
                 <button
                   onClick={handleMeasureClick}
@@ -104,7 +107,7 @@ export default function HeightMeasurement() {
         ) : isMeasuring ? (
           <div className="flex flex-col items-center justify-center gap-8">
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-12 font-sans">
-              Height Measurement
+              Oximeter Measurement
             </h1>
             <div className="relative w-64 h-64 flex items-center justify-center">
               <div className="absolute w-full h-full rounded-full border-8 border-[#00555340]"></div>
@@ -114,41 +117,81 @@ export default function HeightMeasurement() {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-center text-[#005553BF]">
-              Measuring Height...
+              Measuring Oxygen Levels...
               <br />
-              Stand Exactly below the Height Measurement Sensor
+              Keep your finger steady on the sensor
             </h2>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-8 w-full">
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-4 font-sans">
-              Your Height Measurement
+              Your Oximeter Results
             </h1>
             
             <div className="flex flex-col items-center justify-center bg-white rounded-2xl p-8 shadow-lg w-full max-w-md">
-              <div className="text-5xl font-bold text-[#005553BF] mb-2">
-                {height.cm} cm
+              <div className="flex justify-between w-full mb-6">
+                <div className="text-center">
+                  <div className="text-2xl text-gray-600 mb-1">SpO2</div>
+                  <div className="text-5xl font-bold text-[#005553BF]">
+                    {measurement.spo2}%
+                  </div>
+                  <div className={`text-sm mt-2 ${
+                    measurement.spo2 < 95 ? 'text-red-500' : 'text-green-500'
+                  }`}>
+                    {measurement.spo2 < 95 ? 'Below Normal' : 'Normal'}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl text-gray-600 mb-1">Pulse</div>
+                  <div className="text-5xl font-bold text-[#005553BF]">
+                    {measurement.pulse} bpm
+                  </div>
+                  <div className={`text-sm mt-2 ${
+                    measurement.pulse < 60 || measurement.pulse > 100 
+                      ? 'text-red-500' : 'text-green-500'
+                  }`}>
+                    {measurement.pulse < 60 ? 'Low' : 
+                     measurement.pulse > 100 ? 'High' : 'Normal'}
+                  </div>
+                </div>
               </div>
-              <div className="text-3xl text-[#005553BF] mb-6">
-                {height.feet}
-              </div>
-              <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
-                  style={{ width: `${(height.cm / 200) * 100}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between w-full text-sm text-gray-600 mt-2">
-                <span>100cm</span>
-                <span>200cm</span>
+              
+              <div className="w-full">
+                <div className="text-lg font-medium text-[#005553BF] mb-2">
+                  SpO2 Level
+                </div>
+                <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden mb-6">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
+                    style={{ width: `${((measurement.spo2 - 80) / 20) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between w-full text-sm text-gray-600 mb-6">
+                  <span>80%</span>
+                  <span>100%</span>
+                </div>
+                
+                <div className="text-lg font-medium text-[#005553BF] mb-2">
+                  Pulse Rate
+                </div>
+                <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
+                    style={{ width: `${((measurement.pulse - 40) / 120) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between w-full text-sm text-gray-600 mt-2">
+                  <span>40bpm</span>
+                  <span>160bpm</span>
+                </div>
               </div>
             </div>
             
             <button
-              onClick={handleContinue}
+              onClick={handleFinish}
               className="mt-8 px-12 py-4 rounded-full bg-[#005553BF] text-white text-2xl font-bold hover:bg-[#009f96] transition-colors duration-200 cursor-pointer shadow-lg"
             >
-              Continue to Weight Measurement
+              View Complete Results
             </button>
           </div>
         )}
