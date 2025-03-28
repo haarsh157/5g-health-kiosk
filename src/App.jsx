@@ -10,6 +10,8 @@ import WeightMeasurement from './pages/Services/weightMeasurement';
 import TemperatureMeasurement from './pages/Services/tempratureMeasurement';
 import OximeterMeasurement from './pages/Services/oximeter';
 import ResultsPage from './pages/Services/results';
+import Profile from './pages/Profile';
+
 
 function App() {
   return (
@@ -26,6 +28,7 @@ function App() {
           <Route path="/temperature" element={<TemperatureMeasurement />} />
           <Route path="/oximeter" element={<OximeterMeasurement />} />
           <Route path="/results" element={<ResultsPage />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </Router>
     </div>
