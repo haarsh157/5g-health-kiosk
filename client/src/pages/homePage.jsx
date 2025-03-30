@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import userheight from "../assets/mdi_human-male-height.png";
 import weight from "../assets/weight.png";
@@ -10,6 +10,16 @@ import doctor from "../assets/fontisto_doctor.png";
 
 export default function Homepage() {
   const navigate = useNavigate();
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+    
+    if (!token || user?.role !== "PATIENT") {
+      navigate("/"); // Redirect to login if not authenticated as patient
+    }
+  }, [navigate]);
 
   const services = [
     { id: 1, name: "Height Measurement", icon: userheight, path: "/height" },
@@ -41,13 +51,22 @@ export default function Homepage() {
     }
   };
 
+  // If not authenticated, don't render anything (will redirect)
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!token || user?.role !== "PATIENT") {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-teal-50">
-
       <div className="w-full max-w-4xl min-h-[80%] p-10 rounded-xl flex flex-col items-center justify-center bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl">
         <h1 className="text-4xl font-bold text-gray-800 mb-12 font-sans tracking-tight">
-          Select a Service
+          Welcome, {user?.name || "Patient"}
         </h1>
+        <h2 className="text-3xl font-bold text-gray-800 mb-12 font-sans tracking-tight">
+          Select a Service
+        </h2>
 
         <div className={`w-full grid ${getGridLayout()} gap-6 place-items-center`}>
           {services.map((service) => (

@@ -1,0 +1,129 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+}
+
+enum ConsultationStatus {
+  REQUESTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  VIDEO_CALL
+}
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  role        UserRole
+  name        String
+  phoneNumber String   @unique
+  email       String?  @unique
+  password    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Patient-specific relations
+  healthMeasurements HealthMeasurement[]
+  consultations      Consultation[]      @relation("PatientConsultations")
+  prescriptions      Prescription[]      @relation("UserPrescriptions")
+  reports            Report[]            @relation("UserReports")
+
+  // Doctor-specific relations
+  doctorProfile       DoctorProfile?    @relation("DoctorProfileRelation")
+  doctorConsultations Consultation[]    @relation("DoctorConsultations")
+  notifications       Notification[]
+  dailyStats          DoctorDailyStat[]
+}
+
+model DoctorProfile {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id], name: "DoctorProfileRelation")
+  licenseNumber String   @unique 
+  specialty     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HealthMeasurement {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  patientId   String   @db.ObjectId
+  patient     User     @relation(fields: [patientId], references: [id])
+  height      Float?
+  weight      Float?
+  temperature Float?
+  oximeter    Float?
+  measuredAt  DateTime
+  createdAt   DateTime @default(now())
+}
+
+model Consultation {
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  patientId     String             @db.ObjectId
+  patient       User               @relation(fields: [patientId], references: [id], name: "PatientConsultations")
+  doctorId      String             @db.ObjectId
+  doctor        User               @relation(fields: [doctorId], references: [id], name: "DoctorConsultations")
+  startTime     DateTime
+  endTime       DateTime?
+  status        ConsultationStatus @default(REQUESTED)
+  videoCallId   String?
+  prescriptions Prescription[]
+  reports       Report[]
+  notifications Notification[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model Prescription {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  consultationId String       @db.ObjectId
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  patientId      String       @db.ObjectId
+  patient        User         @relation(fields: [patientId], references: [id], name: "UserPrescriptions")
+  content        String
+  createdAt      DateTime     @default(now())
+}
+
+model Report {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  consultationId String       @db.ObjectId
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  patientId      String       @db.ObjectId
+  patient        User         @relation(fields: [patientId], references: [id], name: "UserReports")
+  diagnosis      String
+  notes          String?
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  doctorId       String           @db.ObjectId
+  doctor         User             @relation(fields: [doctorId], references: [id])
+  consultationId String           @db.ObjectId
+  consultation   Consultation     @relation(fields: [consultationId], references: [id])
+  type           NotificationType
+  content        String?
+  read           Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+}
+
+model DoctorDailyStat {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  doctorId         String   @db.ObjectId
+  doctor           User     @relation(fields: [doctorId], references: [id])
+  date             DateTime
+  patientsAttended Int
+  createdAt        DateTime @default(now())
+}

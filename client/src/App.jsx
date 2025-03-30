@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import React from 'react';
-import LandingPage from './pages/landingPage'
+import LandingPage from './landingPage'
 import HealthKioskPage from './pages/healthKioskPage'
 import Login from './pages/login';
 import Signup from './pages/signup';
@@ -11,6 +11,10 @@ import TemperatureMeasurement from './pages/Services/tempratureMeasurement';
 import OximeterMeasurement from './pages/Services/oximeter';
 import ResultsPage from './pages/Services/results';
 import Profile from './pages/Profile';
+import ConsultationPage from './pages/Services/consultation';
+import DoctorHomepage from './doctor/home';
+import DoctorLogin from './doctor/doctorLogin';
+import DoctorSignup from './doctor/doctorSignup';
 
 
 function App() {
@@ -29,9 +33,14 @@ function App() {
           <Route path="/oximeter" element={<OximeterMeasurement />} />
           <Route path="/results" element={<ResultsPage />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/consultation" element={<ConsultationPage />} />
+          <Route path="/doc" element={<DoctorHomepage />} />  
+          <Route path="/doctor-login" element={<DoctorLogin />} />
+          <Route path="/doctor-signup" element={<DoctorSignup />} />
         </Routes>
       </Router>
     </div>
   )
 }
+
 export default App

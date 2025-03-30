@@ -1,18 +1,29 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import lang from "../../assets/Vector.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
 
 export default function ResultsPage() {
   const navigate = useNavigate();
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token || user?.role !== "PATIENT") {
+      navigate("/"); // Redirect to login if not authenticated as patient
+    }
+  }, [navigate]);
+
   const location = useLocation();
-  
+
   // Sample data - in a real app you would get this from state or API
   const measurements = location.state || {
     height: { cm: 175, feet: "5'9\"" },
     weight: { kg: 68 },
     temperature: { celsius: 36.5, fahrenheit: 97.7 },
-    oximeter: { spo2: 98, pulse: 72 }
+    oximeter: { spo2: 98, pulse: 72 },
   };
 
   const handleNewTest = () => {
@@ -49,9 +60,11 @@ export default function ResultsPage() {
               {measurements.height.feet}
             </div>
             <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
-                style={{ width: `${((measurements.height.cm - 100) / 100) * 100}%` }}
+                style={{
+                  width: `${((measurements.height.cm - 100) / 100) * 100}%`,
+                }}
               ></div>
             </div>
             <div className="flex justify-between w-full text-sm text-gray-600 mt-2">
@@ -67,9 +80,11 @@ export default function ResultsPage() {
               {measurements.weight.kg} kg
             </div>
             <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
-                style={{ width: `${((measurements.weight.kg - 40) / 80) * 100}%` }}
+                style={{
+                  width: `${((measurements.weight.kg - 40) / 80) * 100}%`,
+                }}
               ></div>
             </div>
             <div className="flex justify-between w-full text-sm text-gray-600 mt-2">
@@ -80,7 +95,9 @@ export default function ResultsPage() {
 
           {/* Temperature Result */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <h2 className="text-2xl font-bold text-[#005553BF] mb-4">Temperature</h2>
+            <h2 className="text-2xl font-bold text-[#005553BF] mb-4">
+              Temperature
+            </h2>
             <div className="text-4xl font-bold text-[#005553BF] mb-2">
               {measurements.temperature.celsius} °C
             </div>
@@ -88,9 +105,13 @@ export default function ResultsPage() {
               {measurements.temperature.fahrenheit} °F
             </div>
             <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
-                style={{ width: `${((measurements.temperature.celsius - 35) / 4) * 100}%` }}
+                style={{
+                  width: `${
+                    ((measurements.temperature.celsius - 35) / 4) * 100
+                  }%`,
+                }}
               ></div>
             </div>
             <div className="flex justify-between w-full text-sm text-gray-600 mt-2">
@@ -101,33 +122,49 @@ export default function ResultsPage() {
 
           {/* Oximeter Result */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <h2 className="text-2xl font-bold text-[#005553BF] mb-4">Oximeter</h2>
+            <h2 className="text-2xl font-bold text-[#005553BF] mb-4">
+              Oximeter
+            </h2>
             <div className="flex justify-between mb-6">
               <div>
                 <div className="text-xl text-gray-600 mb-1">SpO2</div>
-                <div className={`text-3xl font-bold ${
-                  measurements.oximeter.spo2 < 95 ? 'text-red-500' : 'text-[#005553BF]'
-                }`}>
+                <div
+                  className={`text-3xl font-bold ${
+                    measurements.oximeter.spo2 < 95
+                      ? "text-red-500"
+                      : "text-[#005553BF]"
+                  }`}
+                >
                   {measurements.oximeter.spo2}%
                 </div>
               </div>
               <div>
                 <div className="text-xl text-gray-600 mb-1">Pulse</div>
-                <div className={`text-3xl font-bold ${
-                  measurements.oximeter.pulse < 60 || measurements.oximeter.pulse > 100 
-                    ? 'text-red-500' : 'text-[#005553BF]'
-                }`}>
+                <div
+                  className={`text-3xl font-bold ${
+                    measurements.oximeter.pulse < 60 ||
+                    measurements.oximeter.pulse > 100
+                      ? "text-red-500"
+                      : "text-[#005553BF]"
+                  }`}
+                >
                   {measurements.oximeter.pulse} bpm
                 </div>
               </div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-medium text-[#005553BF] mb-1">SpO2 Level</div>
+                <div className="text-sm font-medium text-[#005553BF] mb-1">
+                  SpO2 Level
+                </div>
                 <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
-                    style={{ width: `${((measurements.oximeter.spo2 - 80) / 20) * 100}%` }}
+                    style={{
+                      width: `${
+                        ((measurements.oximeter.spo2 - 80) / 20) * 100
+                      }%`,
+                    }}
                   ></div>
                 </div>
                 <div className="flex justify-between w-full text-xs text-gray-600 mt-1">
@@ -136,11 +173,17 @@ export default function ResultsPage() {
                 </div>
               </div>
               <div>
-                <div className="text-sm font-medium text-[#005553BF] mb-1">Pulse Rate</div>
+                <div className="text-sm font-medium text-[#005553BF] mb-1">
+                  Pulse Rate
+                </div>
                 <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
-                    style={{ width: `${((measurements.oximeter.pulse - 40) / 120) * 100}%` }}
+                    style={{
+                      width: `${
+                        ((measurements.oximeter.pulse - 40) / 120) * 100
+                      }%`,
+                    }}
                   ></div>
                 </div>
                 <div className="flex justify-between w-full text-xs text-gray-600 mt-1">
