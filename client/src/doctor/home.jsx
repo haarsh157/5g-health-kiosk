@@ -74,12 +74,36 @@ const DoctorDashboard = () => {
     return null;
   }
 
+  const handleLogout = async () => {
+    try {
+      // Call backend API to handle logout
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      alert("You have been logged out successfully.");
+      if (response.ok) {
+        // Clear local storage and redirect to login page
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/");
+      } else {
+        console.error("Failed to logout");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
   return (
     <div className="h-screen w-screen flex bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 p-4 flex flex-col">
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">MedCare Pro</h2>
+          {/* <h2 className="text-xl font-bold text-gray-800 mb-2">MedCare Pro</h2> */}
           <p className="text-sm text-gray-500">Dr. {user?.name || "User"}</p>
         </div>
 
@@ -151,9 +175,9 @@ const DoctorDashboard = () => {
             <button className="p-2 hover:bg-gray-100 rounded-lg">
               <FontAwesomeIcon icon={faBell} className="text-gray-600" />
             </button>
-            <div className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center">
-              {user?.name?.charAt(0) || "D"}
-            </div>
+            <button onClick={handleLogout} className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-full shadow-md transition-colors duration-200 text-sm sm:top-6 sm:right-6 sm:py-3 sm:px-6 sm:text-base z-1 cursor-pointer">
+              Logout
+            </button>
           </div>
         </div>
 
@@ -186,36 +210,7 @@ const DoctorDashboard = () => {
         </div>
 
         {/* Today's Appointments */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Today's Appointments</h3>
-            <button className="text-blue-600 hover:text-blue-700">
-              View All →
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {appointments.map((appointment) => (
-              <div
-                key={appointment.id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg"
-              >
-                <div>
-                  <p className="font-medium">{appointment.patient}</p>
-                  <p className="text-sm text-gray-500">
-                    {appointment.condition}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-gray-600">{appointment.time}</span>
-                  <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
-                    Start Consultation
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        
       </div>
 
       {/* Incoming Call Side Popup */}

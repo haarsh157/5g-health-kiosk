@@ -5,13 +5,11 @@ import lang from "../assets/Vector.png";
 export default function HealthKioskPage() {
   const navigate = useNavigate();
 
-  // Check authentication on component mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!token || user?.role !== "PATIENT") {
-      navigate("/"); // Redirect to login if not authenticated as patient
+    if (user?.role === "DOCTOR") {
+      navigate("/");
     }
   }, [navigate]);
 

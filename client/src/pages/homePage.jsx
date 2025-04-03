@@ -85,7 +85,7 @@ export default function Homepage() {
       {/* Responsive Logout Button */}
       <button
         onClick={handleLogout}
-        className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-full shadow-md transition-colors duration-200 text-sm sm:top-6 sm:right-6 sm:py-3 sm:px-6 sm:text-base z-1"
+        className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-full shadow-md transition-colors duration-200 text-sm sm:top-6 sm:right-6 sm:py-3 sm:px-6 sm:text-base z-1 cursor-pointer"
       >
         Logout
       </button>
