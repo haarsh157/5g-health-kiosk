@@ -37,7 +37,7 @@ export default function HeightMeasurement() {
     //   });
     // }, 3000);
     try {
-      const response = await fetch('http://<raspberry-pi-ip>:3000/api/height/measure-height');
+      const response = await fetch('http://10.42.0.106:5000/api/height/measure-height');
       const data = await response.json();
       setHeight({
         cm: data.cm,

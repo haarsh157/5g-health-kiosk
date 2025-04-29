@@ -1,37 +1,29 @@
-// server/controllers/heightController.js
+const { exec } = require('child_process');
+const path = require('path');
 
-const Gpio = require('pigpio').Gpio;  // Use pigpio for accurate timing
-
-const TRIGGER_PIN = 23;  // Change according to your wiring
-const ECHO_PIN = 24;
-
-const trigger = new Gpio(TRIGGER_PIN, { mode: Gpio.OUTPUT });
-const echo = new Gpio(ECHO_PIN, { mode: Gpio.INPUT, alert: true });
-
-trigger.digitalWrite(0); // Ensure trigger is low
-
+// Endpoint to get the height from the sensor
 const measureHeight = (req, res) => {
-  let startTick;
+  const pythonScriptPath = path.join(__dirname, '../../sensor/measure_sensor.py');
 
-  trigger.trigger(10, 1); // Send 10 microsecond pulse
+  exec(`python3 ${pythonScriptPath}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return res.status(500).json({ error: 'Error executing Python script' });
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).json({ error: 'Error in Python script execution' });
+    }
 
-  echo.once('alert', (level, tick) => {
-    if (level == 1) {
-      startTick = tick;
-    } else {
-      const endTick = tick;
-      const diff = (endTick >> 0) - (startTick >> 0); // Unsigned 32-bit
-      const distance = diff / 2 / 29.1; // Distance in cm
-      const heightFromSensor = 200; // Assume sensor is mounted 2m above ground
-      const height_cm = Math.max(0, heightFromSensor - distance);
+    try {
+      // Parse the output (it's a JSON object from the Python script)
+      const heightData = JSON.parse(stdout);
 
-      const feet = Math.floor(height_cm / 30.48);
-      const inches = Math.round((height_cm % 30.48) / 2.54);
-
-      res.json({
-        cm: height_cm.toFixed(2),
-        feet: `${feet} feet ${inches} inches`
-      });
+      // Send the result back to the client
+      res.json(heightData);
+    } catch (parseError) {
+      console.error('Error parsing Python script output:', parseError);
+      res.status(500).json({ error: 'Error parsing the result' });
     }
   });
 };
