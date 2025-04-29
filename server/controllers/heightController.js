@@ -3,7 +3,7 @@ const path = require('path');
 
 // Endpoint to get the height from the sensor
 const measureHeight = (req, res) => {
-  const pythonScriptPath = path.join(__dirname, '../../sensor/measure_sensor.py');
+  const pythonScriptPath = path.join(__dirname, '../sensor/measure_sensor.py');
 
   exec(`python3 ${pythonScriptPath}`, (error, stdout, stderr) => {
     if (error) {
