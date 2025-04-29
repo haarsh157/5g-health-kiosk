@@ -2,7 +2,7 @@ const { exec } = require("child_process");
 const path = require("path");
 
 const measureHeight = (req, res) => {
-  const pythonScriptPath = path.join(__dirname, "../../sensor/measure_sensor.py");
+  const pythonScriptPath = path.join(__dirname, "../sensors/height.py");
 
   exec(`python3 ${pythonScriptPath}`, (error, stdout, stderr) => {
     if (error || stderr) {
