@@ -39,6 +39,9 @@ export default function HeightMeasurement() {
     try {
       const response = await fetch('http://10.42.0.106:5000/api/height/measure-height');
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Unknown error occurred');
+      }
       setHeight({
         cm: data.cm,
         feet: data.feet,

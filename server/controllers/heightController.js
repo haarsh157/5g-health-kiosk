@@ -1,29 +1,27 @@
-const { exec } = require('child_process');
-const path = require('path');
+const { exec } = require("child_process");
+const path = require("path");
 
-// Endpoint to get the height from the sensor
 const measureHeight = (req, res) => {
-  const pythonScriptPath = path.join(__dirname, '../sensors/height.py');
+  const pythonScriptPath = path.join(__dirname, "../../sensor/measure_sensor.py");
 
   exec(`python3 ${pythonScriptPath}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      return res.status(500).json({ error: 'Error executing Python script' });
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return res.status(500).json({ error: 'Error in Python script execution' });
+    if (error || stderr) {
+      console.error("Execution error:", error || stderr);
+      return res.status(500).json({ error: "Sensor not connected" });
     }
 
     try {
-      // Parse the output (it's a JSON object from the Python script)
-      const heightData = JSON.parse(stdout);
+      const output = JSON.parse(stdout);
 
-      // Send the result back to the client
-      res.json(heightData);
+      if (output.error) {
+        console.error("Python error:", output.error);
+        return res.status(500).json({ error: output.error });
+      }
+
+      return res.json(output);
     } catch (parseError) {
-      console.error('Error parsing Python script output:', parseError);
-      res.status(500).json({ error: 'Error parsing the result' });
+      console.error("Parsing error:", parseError);
+      return res.status(500).json({ error: "Invalid sensor output" });
     }
   });
 };

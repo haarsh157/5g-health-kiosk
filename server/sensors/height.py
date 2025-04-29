@@ -1,73 +1,55 @@
-# measure_sensor.py
 import time
 import pigpio
-import numpy as np
+import json
+import sys
 
-# Setup
-pi = pigpio.pi()  # Connect to pigpio daemon
 TRIGGER_PIN = 23
 ECHO_PIN = 24
 
-pi.set_mode(TRIGGER_PIN, pigpio.OUTPUT)
-pi.set_mode(ECHO_PIN, pigpio.INPUT)
+try:
+    pi = pigpio.pi()
+    if not pi.connected:
+        raise Exception("Pigpio daemon not connected")
 
-def get_distance():
-    # Send a 10 microsecond pulse to trigger
+    pi.set_mode(TRIGGER_PIN, pigpio.OUTPUT)
+    pi.set_mode(ECHO_PIN, pigpio.INPUT)
+
+    pi.write(TRIGGER_PIN, 0)
+    time.sleep(2)
+
+    # Trigger the sensor
     pi.write(TRIGGER_PIN, 1)
-    time.sleep(0.00001)  # 10 microseconds
+    time.sleep(0.00001)
     pi.write(TRIGGER_PIN, 0)
 
-    # Measure time for echo to return
-    pulse_start = time.time()
-    pulse_end = time.time()
+    start_time = time.time()
+    timeout = start_time + 0.05
 
     while pi.read(ECHO_PIN) == 0:
-        pulse_start = time.time()
+        start = time.time()
+        if time.time() > timeout:
+            raise Exception("Echo start timeout ? sensor not responding")
 
     while pi.read(ECHO_PIN) == 1:
-        pulse_end = time.time()
+        end = time.time()
+        if time.time() > timeout:
+            raise Exception("Echo end timeout ? sensor not responding")
 
-    # Calculate distance based on time
-    pulse_duration = pulse_end - pulse_start
-    distance = pulse_duration * 17150  # Speed of sound: 34300 cm/s / 2 for round trip
-    distance = round(distance, 2)  # cm
+    duration = end - start
+    distance_cm = duration * 17150
+    distance_cm = round(distance_cm, 2)
 
-    return distance
+    height_cm = 200 - distance_cm  # assume reference height is 200 cm
+    feet = int(height_cm / 30.48)
+    inches = int((height_cm % 30.48) / 2.54)
 
-def measure_height():
-    measurements = []
+    result = {
+        "cm": round(height_cm, 2),
+        "feet": f"{feet} feet {inches} inches"
+    }
 
-    # Take 1000 measurements
-    for _ in range(1000):
-        distance = get_distance()
-        measurements.append(distance)
-        time.sleep(0.05)  # Give a slight delay between measurements (50ms)
+    print(json.dumps(result))
 
-    # Convert to numpy array for easier statistical calculations
-    measurements = np.array(measurements)
-
-    # Calculate mean and standard deviation
-    mean_distance = np.mean(measurements)
-    std_dev = np.std(measurements)
-
-    # Filter out outliers (values outside 2 standard deviations from the mean)
-    lower_bound = mean_distance - 2 * std_dev
-    upper_bound = mean_distance + 2 * std_dev
-    filtered_measurements = measurements[(measurements >= lower_bound) & (measurements <= upper_bound)]
-
-    # Calculate the final average after filtering out outliers
-    final_distance = np.mean(filtered_measurements)
-
-    # Assuming the sensor is mounted 2 meters above the ground
-    height_from_sensor = 200  # cm
-    height_cm = max(0, height_from_sensor - final_distance)
-    
-    feet = int(height_cm / 30.48)  # Convert to feet
-    inches = round((height_cm % 30.48) / 2.54)  # Convert remaining cm to inches
-
-    return {"cm": height_cm, "feet": f"{feet} feet {inches} inches"}
-
-if __name__ == "__main__":
-    height = measure_height()
-    print(height)
-    pi.stop()  # Close the connection to pigpio
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+    sys.exit(1)
