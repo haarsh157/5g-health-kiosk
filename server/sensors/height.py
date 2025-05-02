@@ -8,7 +8,7 @@ from scipy import stats
 TRIGGER_PIN = 23
 ECHO_PIN = 24
 REFERENCE_HEIGHT_CM = 200
-NUM_MEASUREMENTS = 20
+NUM_MEASUREMENTS = 1000
 DELAY_BETWEEN_MEASUREMENTS = 0.1  # seconds
 
 def measure_distance(pi):
