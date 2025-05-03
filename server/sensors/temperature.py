@@ -32,11 +32,11 @@ def get_temperature_statistics(samples=10, delay=0.5):
             readings.append(temp)
         time.sleep(delay)
 
-    print(f"readings : {readings}")
-    print(f"mean : {round(statistics.mean(readings), 2)}")
-    print(f"median : {round(statistics.median(readings))}")
-    print(f"std_dev : {round(min(readings), 2)}")
-    print(f"max : {round(max(readings), 2)}")
+    # print(f"readings : {readings}")
+    # print(f"mean : {round(statistics.mean(readings), 2)}")
+    # print(f"median : {round(statistics.median(readings))}")
+    # print(f"std_dev : {round(min(readings), 2)}")
+    # print(f"max : {round(max(readings), 2)}")
 
     mean = round(statistics.mean(readings))
     result = {
