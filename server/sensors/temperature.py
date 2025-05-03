@@ -32,16 +32,19 @@ def get_temperature_statistics(samples=10, delay=0.5):
             readings.append(temp)
         time.sleep(delay)
 
+    print(f"readings : {readings}")
+    print(f"mean : {round(statistics.mean(readings), 2)}")
+    print(f"median : {round(statistics.median(readings))}")
+    print(f"std_dev : {round(min(readings), 2)}")
+    print(f"max : {round(max(readings), 2)}")
+
+    mean = round(statistics.mean(readings))
     result = {
-        "readings": readings,
-        "mean": round(statistics.mean(readings), 2),
-        "median": round(statistics.median(readings), 2),
-        "std_dev": round(statistics.stdev(readings), 2) if len(readings) > 1 else 0.0,
-        "min": round(min(readings), 2),
-        "max": round(max(readings), 2)
+        "celsius":mean,
+        "fahrenheit":(mean * 9/5) + 32
     }
 
-    return json.dumps(result, indent=4)
+    return json.dumps(result, indent=2)
 
 if __name__ == "__main__":
     print(get_temperature_statistics())
