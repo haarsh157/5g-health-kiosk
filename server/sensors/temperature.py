@@ -15,7 +15,7 @@ def read_temp_raw():
     try:
         data = bus.read_word_data(MLX90614_I2C_ADDR, MLX90614_TOBJ1_REG)
         # MLX90614 returns data in a weird byte order (LSB/MSB)
-        data = ((data & 0xFF) << 8) | (data >> 8)
+        # data = ((data & 0xFF) << 8) | (data >> 8)
         temp_celsius = (data * 0.02) - 273.15
         return temp_celsius
     except Exception as e:
