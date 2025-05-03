@@ -1,9 +1,10 @@
-import express from "express";
-import { getTemperature } from "../controllers/tempController.js";
-import { verifyToken } from "../middleware/authMiddleware.js";
+// server/routes/temperatureRoutes.js
+
+const express = require('express');
+const { getTemperature } = require('../controllers/tempController');
 
 const router = express.Router();
 
-router.get("/", verifyToken, getTemperature);
+router.get('/measure-height', measureHeight);
 
-export default router;
+module.exports = router;
