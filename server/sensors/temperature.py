@@ -22,7 +22,7 @@ def read_temp_raw():
         print(f"Error reading temperature: {e}")
         return None
 
-def get_temperature_statistics(samples=10, delay=0.5):
+def get_temperature_statistics(samples=100, delay=0.5):
     """Reads temperature samples and returns statistical results."""
     readings = []
 
