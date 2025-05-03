@@ -10,18 +10,19 @@ export default function Login() {
   const navigate = useNavigate();
   const [loginData, setLoginData] = useState({
     identifier: "",
-    password: ""
+    password: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const API_BASE_URL = "http://localhost:5000";
+  // const API_BASE_URL = import.meta.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
   // Check if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
-    
+
     if (token && userData) {
       navigate("/home");
     }
@@ -29,7 +30,7 @@ export default function Login() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setLoginData(prev => ({ ...prev, [name]: value }));
+    setLoginData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -42,7 +43,7 @@ export default function Login() {
       const isEmail = loginData.identifier.includes("@");
 
       let loginPayload = {
-        password: loginData.password
+        password: loginData.password,
       };
 
       if (isPhoneNumber) {
@@ -62,7 +63,9 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Login failed. Please check your credentials.");
+        throw new Error(
+          data.error || "Login failed. Please check your credentials."
+        );
       }
 
       localStorage.setItem("token", data.token);
@@ -81,7 +84,10 @@ export default function Login() {
       <div className="w-full max-w-xl p-12 rounded-xl bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl flex flex-col items-center min-h-[600px] justify-center">
         <img src={user} alt="user" className="w-32 h-32 mb-8" />
 
-        <form onSubmit={handleSubmit} className="w-full space-y-8 max-w-md mx-auto">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full space-y-8 max-w-md mx-auto"
+        >
           {error && (
             <div className="text-red-500 text-center mb-4 font-medium">
               {error}

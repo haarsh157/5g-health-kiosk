@@ -2,172 +2,184 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import lang from "../../assets/Vector.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
-
-const doctors = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialty: "General Physician",
-    experience: "12 years",
-    image: "https://example.com/doctor1.jpg",
-    rating: 4.9,
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Chen",
-    specialty: "Cardiologist",
-    experience: "8 years",
-    image: "https://example.com/doctor2.jpg",
-    rating: 4.8,
-  },
-  // Add more doctors as needed
-];
+import { useSocket } from "../../providers/Socket";
 
 export default function ConsultationPage() {
   const navigate = useNavigate();
-
-  // Check authentication on component mount
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    if (!token || user?.role !== "PATIENT") {
-      navigate("/"); // Redirect to login if not authenticated as patient
-    }
-  }, [navigate]);
-
   const [isLoading, setIsLoading] = useState(false);
-  const [consultationStarted, setConsultationStarted] = useState(false);
+  const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [error, setError] = useState(null);
+  const { socket } = useSocket();
 
-  const startConsultation = () => {
+  const API_BASE_URL = "http://localhost:5000";
+
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    if (!token || user?.role !== "PATIENT") {
+      navigate("/");
+      return;
+    }
+
+    const fetchActiveDoctors = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/getDoctor/active`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        setDoctors(data);
+      } catch (err) {
+        setError("Failed to fetch doctors. Please try again later.");
+        console.error("Error fetching doctors:", err);
+      }
+    };
+
+    fetchActiveDoctors();
+  }, [navigate, token, user?.role]);
+
+  const healthMeasurements = [
+    { name: "Heart Rate", value: "76 bpm" },
+    { name: "Blood Pressure", value: "120/80 mmHg" },
+    { name: "Temperature", value: "98.6°F" },
+  ];
+
+  const startConsultation = async () => {
+    if (!selectedDoctor) {
+      setError("Please select a doctor before starting the consultation.");
+      return;
+    }
+
     setIsLoading(true);
-    // Simulate doctor matching delay
-    setTimeout(() => {
-      const randomDoctor = doctors[Math.floor(Math.random() * doctors.length)];
-      setSelectedDoctor(randomDoctor);
-      setIsLoading(false);
-      setConsultationStarted(true);
-    }, 3000);
-  };
+    setError(null);
 
-  const endConsultation = () => {
-    setConsultationStarted(false);
-    setSelectedDoctor(null);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_BASE_URL}/api/consultations/request`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            doctorId: selectedDoctor.id,
+            patientId: user.id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create consultation request");
+      }
+
+      const data = await response.json();
+      const consultationId = data.consultation.id;
+
+      // Join the consultation room
+      socket.emit("join-room", {
+        roomId: consultationId,
+        userId: selectedDoctor.id,
+      });
+
+      navigate(`/consultation/${consultationId}`, {
+        state: {
+          selectedDoctor,
+          healthMeasurements,
+          consultation: data.consultation,
+        },
+      });
+    } catch (err) {
+      console.error("Error starting consultation:", err);
+      setError("Failed to start consultation. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-teal-50">
-      {/* Main Content Container */}
       <div className="w-full max-w-4xl min-h-[80%] p-10 rounded-xl flex flex-col items-center justify-center bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl">
-        {!consultationStarted ? (
-          <>
-            <h1 className="text-4xl font-extrabold text-[#005553BF] mb-8 font-sans">
-              Video Consultation
-            </h1>
+        <>
+          <h1 className="text-4xl font-extrabold text-[#005553BF] mb-8 font-sans">
+            Video Consultation
+          </h1>
 
-            {!isLoading ? (
-              <div className="flex flex-col items-center gap-8">
-                <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-                  <h2 className="text-2xl font-bold text-[#005553BF] mb-4">
-                    Available Doctors
-                  </h2>
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {!isLoading ? (
+            <div className="flex flex-col items-center gap-8">
+              <div className="bg-white rounded-2xl p-8 shadow-lg text-center w-full max-w-2xl">
+                <h2 className="text-2xl font-bold text-[#005553BF] mb-4">
+                  Available Doctors
+                </h2>
+                {doctors.length > 0 ? (
+                  <>
+                    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {doctors.map((doctor) => (
+                        <div
+                          key={doctor.id}
+                          onClick={() => setSelectedDoctor(doctor)}
+                          className={`p-4 border rounded-lg cursor-pointer transition duration-200 ${
+                            selectedDoctor?.id === doctor.id
+                              ? "bg-[#009f96]/20 border-[#009f96] shadow-md"
+                              : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <h3 className="font-bold text-lg">
+                            {doctor.user.name}
+                          </h3>
+                          <p className="text-gray-600">{doctor.specialty}</p>
+                          {doctor.rating && (
+                            <p className="text-yellow-600">
+                              Rating: {doctor.rating.toFixed(1)}/5
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={startConsultation}
+                      disabled={isLoading}
+                      className="px-12 py-4 rounded-full bg-[#009f96] text-white text-2xl font-bold hover:bg-[#008a82] transition-colors duration-200 cursor-pointer shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      Start Consultation
+                    </button>
+                  </>
+                ) : (
                   <p className="text-lg text-[#005553BF] mb-6">
-                    Connect instantly with experienced medical professionals
+                    No doctors available at the moment. Please try again later.
                   </p>
-                  <button
-                    onClick={startConsultation}
-                    className="px-12 py-4 rounded-full bg-[#009f96] text-white text-2xl font-bold hover:bg-[#008a82] transition-colors duration-200 cursor-pointer shadow-lg"
-                  >
-                    Start Consultation
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-8">
-                <div className="relative w-64 h-64 flex items-center justify-center">
-                  <div className="absolute w-full h-full rounded-full border-8 border-[#00555340]"></div>
-                  <div className="absolute w-3/4 h-3/4 rounded-full border-8 border-transparent border-t-[#005553BF] border-r-[#005553BF] animate-spin"></div>
-                  <div className="absolute text-xl font-bold text-[#005553BF] text-center">
-                    Searching for available doctors...
-                  </div>
-                </div>
-                <p className="text-lg text-[#005553BF] text-center">
-                  Please wait while we connect you with a certified medical
-                  professional
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex flex-col items-center gap-8">
-            <div className="bg-white rounded-2xl p-6 shadow-lg w-full">
-              <div className="flex items-center gap-4 mb-4">
-                <img
-                  src={selectedDoctor.image}
-                  alt="Doctor"
-                  className="w-16 h-16 rounded-full border-2 border-[#009f96]"
-                />
-                <div>
-                  <h2 className="text-2xl font-bold text-[#005553BF]">
-                    {selectedDoctor.name}
-                  </h2>
-                  <p className="text-lg text-[#005553BF]">
-                    {selectedDoctor.specialty} • {selectedDoctor.experience}{" "}
-                    experience
-                  </p>
-                </div>
-              </div>
-
-              {/* Video Container */}
-              <div className="relative bg-gray-200 rounded-xl h-96 w-full overflow-hidden">
-                {/* Doctor Video Feed */}
-                <div className="absolute inset-0 bg-gray-400 flex items-center justify-center">
-                  <span className="text-white text-xl">
-                    Doctor's Video Feed
-                  </span>
-                </div>
-
-                {/* User Video Preview */}
-                <div className="absolute bottom-4 right-4 w-32 h-32 bg-gray-600 rounded-lg overflow-hidden">
-                  <span className="text-white text-sm flex items-center justify-center h-full">
-                    Your Video
-                  </span>
-                </div>
-              </div>
-
-              {/* Call Controls */}
-              <div className="flex justify-center gap-6 mt-6">
-                <button className="p-4 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M19 11h-8v2h8v-2z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={endConsultation}
-                  className="p-4 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.23-2.66 2.08-.19.2-.19.51 0 .71.2.2.51.2.71 0 .69-.72 1.48-1.34 2.34-1.75.15-.06.3-.1.46-.1.35 0 .66.24.73.58.13.69.39 1.36.76 1.95-.64.17-1.29.32-1.97.41-.19.03-.39.17-.45.35-.06.18-.02.39.11.53 1.13 1.17 2.63 1.93 4.23 1.93s3.1-.76 4.23-1.93c.13-.14.17-.35.11-.53-.06-.18-.26-.32-.45-.35-.68-.09-1.33-.24-1.97-.41.37-.59.64-1.26.76-1.95.07-.34.38-.58.73-.58.16 0 .31.04.46.1.86.41 1.65 1.03 2.34 1.75.2.2.51.2.71 0 .19-.2.19-.51 0-.71-.79-.85-1.68-1.59-2.66-2.08-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z" />
-                  </svg>
-                </button>
+                )}
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-8">
+              <div className="relative w-64 h-64 flex items-center justify-center">
+                <div className="absolute w-full h-full rounded-full border-8 border-[#00555340]"></div>
+                <div className="absolute w-3/4 h-3/4 rounded-full border-8 border-transparent border-t-[#005553BF] border-r-[#005553BF] animate-spin"></div>
+                <div className="absolute text-xl font-bold text-[#005553BF] text-center">
+                  Connecting to doctor...
+                </div>
+              </div>
+              <p className="text-lg text-[#005553BF] text-center">
+                Please wait while we connect you with Dr.{" "}
+                {selectedDoctor?.user?.name}
+              </p>
+            </div>
+          )}
+        </>
       </div>
 
-      {/* Navigation Buttons */}
       <button
         onClick={() => navigate("/home")}
         className="fixed bottom-8 left-8 p-2 rounded-full hover:bg-[#009f96]/20 transition-colors duration-200 cursor-pointer"

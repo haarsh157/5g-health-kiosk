@@ -89,8 +89,13 @@ export default function Signup() {
       <div className="w-full max-w-xl p-12 rounded-xl bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl flex flex-col items-center min-h-[600px] justify-center">
         <img src={user} alt="user" className="w-32 h-32 mb-8" />
 
-        <form onSubmit={handleSubmit} className="w-full space-y-8 max-w-md mx-auto">
-          {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+        <form
+          onSubmit={handleSubmit}
+          className="w-full space-y-8 max-w-md mx-auto"
+        >
+          {error && (
+            <div className="text-red-500 text-center mb-4">{error}</div>
+          )}
 
           <div className="relative">
             <div className="relative">

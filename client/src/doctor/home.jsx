@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LineChart,
@@ -16,13 +16,21 @@ import {
   faChartLine,
   faBell,
   faSearch,
-  faPhone,
+  faClock,
+  faCheckCircle,
+  faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
+import { useSocket } from "../providers/Socket";
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
-  const [incomingCall, setIncomingCall] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState("dashboard");
+  const [consultations, setConsultations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { socket } = useSocket();
+
+  const API_BASE_URL = "http://localhost:5000";
 
   // Check authentication on component mount
   useEffect(() => {
@@ -30,9 +38,48 @@ const DoctorDashboard = () => {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!token || user?.role !== "DOCTOR") {
-      navigate("/"); 
+      navigate("/");
     }
   }, [navigate]);
+
+  // Fetch consultation requests
+  const fetchConsultations = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/consultations/getrequests`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch consultations");
+      }
+
+      const data = await response.json();
+      console.log(data);
+      setConsultations(data.consultations);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchConsultations();
+  }, []);
+
+  // Set up polling for real-time updates
+  useEffect(() => {
+    const interval = setInterval(fetchConsultations, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const patientData = [
     { name: "Mon", patients: 4 },
@@ -43,29 +90,37 @@ const DoctorDashboard = () => {
     { name: "Sat", patients: 3 },
   ];
 
-  const appointments = [
-    {
-      id: 1,
-      patient: "Sarah Johnson",
-      time: "09:30 AM",
-      condition: "Follow-up",
-    },
-    {
-      id: 2,
-      patient: "Michael Chen",
-      time: "11:15 AM",
-      condition: "New Patient",
-    },
-    {
-      id: 3,
-      patient: "Emma Wilson",
-      time: "02:00 PM",
-      condition: "Consultation",
-    },
-  ];
+  const handleAcceptCall = (consultationId) => {
+    navigate(`/consultation/${consultationId}`);
+    socket.emit("join-room", {
+      roomId: consultationId,
+      userId: user.id,
+    });
+  };
 
-  const handleAcceptCall = () => navigate("/consultation/active");
-  const handleRejectCall = () => setIncomingCall(false);
+  const handleRejectCall = async (consultationId) => {
+    try {
+      const response = await fetch(
+        `/api/consultations/${consultationId}/reject`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to reject consultation");
+      }
+
+      // Update local state
+      setConsultations((prev) => prev.filter((c) => c.id !== consultationId));
+    } catch (err) {
+      console.error("Error rejecting consultation:", err);
+    }
+  };
 
   // If not authenticated, don't render anything (will redirect)
   const token = localStorage.getItem("token");
@@ -76,7 +131,6 @@ const DoctorDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      // Call backend API to handle logout
       const response = await fetch("/api/auth/logout", {
         method: "POST",
         headers: {
@@ -84,9 +138,8 @@ const DoctorDashboard = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      alert("You have been logged out successfully.");
+
       if (response.ok) {
-        // Clear local storage and redirect to login page
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         navigate("/");
@@ -98,12 +151,16 @@ const DoctorDashboard = () => {
     }
   };
 
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
     <div className="h-screen w-screen flex bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 p-4 flex flex-col">
         <div className="mb-8">
-          {/* <h2 className="text-xl font-bold text-gray-800 mb-2">MedCare Pro</h2> */}
           <p className="text-sm text-gray-500">Dr. {user?.name || "User"}</p>
         </div>
 
@@ -156,7 +213,7 @@ const DoctorDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 overflow-auto">
         {/* Top Bar */}
         <div className="flex justify-between items-center mb-8">
           <div className="relative w-96">
@@ -175,7 +232,10 @@ const DoctorDashboard = () => {
             <button className="p-2 hover:bg-gray-100 rounded-lg">
               <FontAwesomeIcon icon={faBell} className="text-gray-600" />
             </button>
-            <button onClick={handleLogout} className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-full shadow-md transition-colors duration-200 text-sm sm:top-6 sm:right-6 sm:py-3 sm:px-6 sm:text-base z-1 cursor-pointer">
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-full shadow-md transition-colors duration-200 text-sm"
+            >
               Logout
             </button>
           </div>
@@ -209,65 +269,76 @@ const DoctorDashboard = () => {
           </div>
         </div>
 
-        {/* Today's Appointments */}
-        
-      </div>
-
-      {/* Incoming Call Side Popup */}
-      {incomingCall && (
-        <div className="fixed right-8 top-20 bg-white p-6 rounded-xl shadow-xl border border-gray-200 animate-slide-in">
-          <div className="flex flex-col items-center">
-            <div className="mb-4">
-              <FontAwesomeIcon
-                icon={faVideo}
-                className="text-blue-500 text-2xl mb-2"
-              />
-              <h3 className="text-lg font-semibold">Incoming Video Call</h3>
-              <p className="text-sm text-gray-600">Patient: Emma Wilson</p>
-              <p className="text-xs text-gray-500">12:00 PM - 12:30 PM</p>
-            </div>
-
-            <div className="flex gap-4 w-full">
-              <button
-                onClick={handleAcceptCall}
-                className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                <FontAwesomeIcon icon={faPhone} className="mr-2" />
-                Accept
-              </button>
-              <button
-                onClick={handleRejectCall}
-                className="flex-1 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  rotation={180}
-                  className="mr-2"
-                />
-                Decline
-              </button>
-            </div>
+        {/* Consultation Requests */}
+        <div className="bg-white p-6 rounded-xl shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Consultation Requests</h3>
+            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {consultations.length} Pending
+            </span>
           </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 p-4 text-center">{error}</div>
+          ) : consultations.length === 0 ? (
+            <div className="text-gray-500 p-4 text-center">
+              No pending consultation requests
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {consultations.map((consultation) => (
+                <div
+                  key={consultation.id}
+                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium text-gray-900">
+                        {consultation.patient?.name || "Unknown Patient"}
+                      </h4>
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <FontAwesomeIcon icon={faClock} className="mr-2" />
+                        Requested at: {formatTime(consultation.requestTime)}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        Phone: {consultation.patient?.phoneNumber || "N/A"}
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleAcceptCall(consultation.id)}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center"
+                      >
+                        <FontAwesomeIcon
+                          icon={faCheckCircle}
+                          className="mr-2"
+                        />
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleRejectCall(consultation.id)}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center"
+                      >
+                        <FontAwesomeIcon
+                          icon={faTimesCircle}
+                          className="mr-2"
+                        />
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
 export default DoctorDashboard;
-
-/* Add this CSS for the animation */
-<style jsx global>{`
-  @keyframes slide-in {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  .animate-slide-in {
-    animation: slide-in 0.3s ease-out;
-  }
-`}</style>;
