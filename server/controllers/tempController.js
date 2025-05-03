@@ -1,7 +1,7 @@
-import { execFile } from "child_process";
-import path from "path";
+const { execFile } = require("child_process");
+const path = require("path");
 
-export const getTemperature = (req, res) => {
+const getTemperature = (req, res) => {
   const scriptPath = path.resolve("sensors/temperature.py");
 
   execFile("python3", [scriptPath], (error, stdout, stderr) => {
@@ -19,3 +19,5 @@ export const getTemperature = (req, res) => {
     }
   });
 };
+
+module.exports = { getTemperature };
