@@ -43,7 +43,7 @@ export default function TemperatureMeasurement() {
   const handleMeasureClick = async () => {
     setIsMeasuring(true);
     try {
-      const res = await fetch("http://<your-server-ip>:5000/api/temperature", {
+      const res = await fetch("http://10.42.0.106:5000/api/height/measure-temperature", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
