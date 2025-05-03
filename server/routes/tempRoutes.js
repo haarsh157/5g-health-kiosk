@@ -5,6 +5,6 @@ const { getTemperature } = require('../controllers/tempController');
 
 const router = express.Router();
 
-router.get('/measure-height', measureHeight);
+router.get('/measure-temperature', getTemperature);
 
 module.exports = router;
