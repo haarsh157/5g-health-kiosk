@@ -3,45 +3,53 @@ import time
 import statistics
 import json
 
-# Constants
+# Constants for the MLX90614 sensor
 MLX90614_I2C_ADDR = 0x5A
-MLX90614_TOBJ1_REG = 0x07  # Object temperature register
+MLX90614_OBJECT_TEMP = 0x07
 
-# Initialize I2C bus 4
+# Use I2C bus 4 (GPIO 13 = SDA, GPIO 19 = SCL)
 bus = smbus2.SMBus(4)
 
-def read_temp_raw():
-    """Reads raw temperature data from MLX90614."""
+def read_temperature():
     try:
-        data = bus.read_word_data(MLX90614_I2C_ADDR, MLX90614_TOBJ1_REG)
-        # MLX90614 returns data in a weird byte order (LSB/MSB)
-        data = ((data & 0xFF) << 8) | (data >> 8)
-        temp_celsius = (data * 0.02) - 273.15
-        return temp_celsius
+        # Read two bytes of data
+        data = bus.read_word_data(MLX90614_I2C_ADDR, MLX90614_OBJECT_TEMP)
+        # Convert to correct byte order
+        temp_raw = ((data & 0xFF) << 8) | ((data >> 8) & 0xFF)
+        # Convert to Celsius
+        return temp_raw * 0.02 - 273.15
     except Exception as e:
-        print(f"Error reading temperature: {e}")
-        return None
+        raise RuntimeError(f"I2C read error: {e}")
 
-def get_temperature_statistics(samples=10, delay=0.5):
-    """Reads temperature samples and returns statistical results."""
+def get_accurate_temperature(samples=20, delay=0.1):
     readings = []
-
-    while len(readings) < samples:
-        temp = read_temp_raw()
-        if temp is not None:
+    for _ in range(samples):
+        try:
+            temp = read_temperature()
             readings.append(temp)
+        except:
+            continue
         time.sleep(delay)
 
-    result = {
-        "readings": readings,
-        "mean": round(statistics.mean(readings), 2),
-        "median": round(statistics.median(readings), 2),
-        "std_dev": round(statistics.stdev(readings), 2) if len(readings) > 1 else 0.0,
-        "min": round(min(readings), 2),
-        "max": round(max(readings), 2)
+    if not readings:
+        raise RuntimeError("No temperature readings collected")
+
+    # Remove outliers using standard deviation filtering
+    mean = statistics.mean(readings)
+    stdev = statistics.stdev(readings)
+    filtered = [r for r in readings if abs(r - mean) <= stdev]
+
+    final_celsius = round(statistics.mean(filtered), 2)
+    final_fahrenheit = round((final_celsius * 9 / 5) + 32, 2)
+
+    return {
+        "celsius": final_celsius,
+        "fahrenheit": final_fahrenheit
     }
 
-    return json.dumps(result, indent=4)
-
 if __name__ == "__main__":
-    print(get_temperature_statistics())
+    try:
+        temperature_data = get_accurate_temperature()
+        print(json.dumps(temperature_data))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
