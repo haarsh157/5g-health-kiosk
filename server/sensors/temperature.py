@@ -34,7 +34,7 @@ def remove_outliers_iqr(data):
 
     return [x for x in data if lower_bound <= x <= upper_bound]
 
-def get_temperature_statistics(samples=100, delay=0.5):
+def get_temperature_statistics(samples=10, delay=1):
     """Reads temperature samples and returns filtered mean and Fahrenheit."""
     readings = []
 
