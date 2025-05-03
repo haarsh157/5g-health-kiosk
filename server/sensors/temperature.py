@@ -3,23 +3,15 @@ import time
 import statistics
 import json
 
-# Constants for the MLX90614 sensor
 MLX90614_I2C_ADDR = 0x5A
 MLX90614_OBJECT_TEMP = 0x07
 
-# Use I2C bus 4 (GPIO 13 = SDA, GPIO 19 = SCL)
-bus = smbus2.SMBus(4)
+bus = smbus2.SMBus(1)
 
 def read_temperature():
-    try:
-        # Read two bytes of data
-        data = bus.read_word_data(MLX90614_I2C_ADDR, MLX90614_OBJECT_TEMP)
-        # Convert to correct byte order
-        temp_raw = ((data & 0xFF) << 8) | ((data >> 8) & 0xFF)
-        # Convert to Celsius
-        return temp_raw * 0.02 - 273.15
-    except Exception as e:
-        raise RuntimeError(f"I2C read error: {e}")
+    raw = bus.read_word_data(MLX90614_I2C_ADDR, MLX90614_OBJECT_TEMP)
+    raw_swapped = ((raw & 0xFF) << 8) | (raw >> 8)
+    return raw_swapped * 0.02 - 273.15
 
 def get_accurate_temperature(samples=20, delay=0.1):
     readings = []
@@ -32,11 +24,10 @@ def get_accurate_temperature(samples=20, delay=0.1):
         time.sleep(delay)
 
     if not readings:
-        raise RuntimeError("No temperature readings collected")
+        raise RuntimeError("No valid readings")
 
-    # Remove outliers using standard deviation filtering
     mean = statistics.mean(readings)
-    stdev = statistics.stdev(readings)
+    stdev = statistics.stdev(readings) if len(readings) > 1 else 0
     filtered = [r for r in readings if abs(r - mean) <= stdev]
 
     final_celsius = round(statistics.mean(filtered), 2)
@@ -49,7 +40,7 @@ def get_accurate_temperature(samples=20, delay=0.1):
 
 if __name__ == "__main__":
     try:
-        temperature_data = get_accurate_temperature()
-        print(json.dumps(temperature_data))
+        data = get_accurate_temperature()
+        print(json.dumps(data))
     except Exception as e:
         print(json.dumps({"error": str(e)}))
