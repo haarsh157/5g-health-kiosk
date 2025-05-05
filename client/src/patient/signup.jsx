@@ -19,7 +19,7 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const API_BASE_URL = "http://localhost:5000";
+  const API_BASE_URL = "https://192.168.37.51:5000";
 
   // Check if user is already logged in
   useEffect(() => {
@@ -89,8 +89,13 @@ export default function Signup() {
       <div className="w-full max-w-xl p-12 rounded-xl bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl flex flex-col items-center min-h-[600px] justify-center">
         <img src={user} alt="user" className="w-32 h-32 mb-8" />
 
-        <form onSubmit={handleSubmit} className="w-full space-y-8 max-w-md mx-auto">
-          {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+        <form
+          onSubmit={handleSubmit}
+          className="w-full space-y-8 max-w-md mx-auto"
+        >
+          {error && (
+            <div className="text-red-500 text-center mb-4">{error}</div>
+          )}
 
           <div className="relative">
             <div className="relative">

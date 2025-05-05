@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import lang from "../../assets/Vector.png";
-import userTemperature from "../../assets/Group 9.png";
+import userheight from "../../assets/height.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
 
-export default function TemperatureMeasurement() {
+const API_BASE_URL = "https://192.168.37.51:5000";
+
+export default function HeightMeasurement() {
   const navigate = useNavigate();
 
   // Check authentication on component mount
@@ -19,29 +21,48 @@ export default function TemperatureMeasurement() {
 
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [temperature, setTemperature] = useState({
-    celsius: 36.5,
-    fahrenheit: 97.7,
-  });
+  const [height, setHeight] = useState({ cm: 175, feet: "5'9\"" });
   const steps = ["Height", "Weight", "Temperature", "Oximeter"];
-  const currentStep = 2;
+  const currentStep = 0;
 
-  const handleMeasureClick = () => {
+  const handleMeasureClick = async () => {
     setIsMeasuring(true);
-    setTimeout(() => {
-      setIsMeasuring(false);
+    // setTimeout(() => {
+    //   setIsMeasuring(false);
+    //   setShowResult(true);
+    //   const randomCm = Math.floor(Math.random() * 50) + 150;
+    //   const feet = Math.floor(randomCm / 30.48);
+    //   const inches = Math.round((randomCm % 30.48) / 2.54);
+    //   setHeight({
+    //     cm: randomCm,
+    //     feet: `${feet} feet ${inches} inches`,
+    //   });
+    // }, 3000);
+    try {
+      // const response = await fetch(`${API_BASE_URL}/api/height/measure-height`);
+      // const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error("Unknown error occurred");
+      // }
+      // setHeight({
+      //   cm: data.cm,
+      //   feet: data.feet,
+      // });
+      setHeight({
+        cm: 170,
+        feet: "5 feet 11 inches"
+      })
       setShowResult(true);
-      const randomCelsius = (Math.random() * 4 + 35).toFixed(1);
-      const fahrenheit = ((randomCelsius * 9) / 5 + 32).toFixed(1);
-      setTemperature({
-        celsius: randomCelsius,
-        fahrenheit: fahrenheit,
-      });
-    }, 3000);
+      
+    } catch (error) {
+      console.error("Error measuring height:", error);
+      alert("Failed to measure height. Please try again.");
+    }
+    setIsMeasuring(false);
   };
 
   const handleContinue = () => {
-    navigate("/oximeter");
+    navigate("/weight");
   };
 
   return (
@@ -97,13 +118,13 @@ export default function TemperatureMeasurement() {
         {!isMeasuring && !showResult ? (
           <>
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-12 font-sans">
-              Temperature Measurement
+              Height Measurement
             </h1>
             <div className="flex">
-              <img src={userTemperature} alt="Temperature" />
+              <img src={userheight} alt="Language" />
               <div className="flex flex-col items-center gap-4 w-[50%] justify-center">
                 <h2 className="text-2xl font-bold text-center text-[#005553BF]">
-                  Place your finger on the temperature sensor
+                  Stand Exactly below the Height Measurement Sensor
                 </h2>
                 <button
                   onClick={handleMeasureClick}
@@ -117,7 +138,7 @@ export default function TemperatureMeasurement() {
         ) : isMeasuring ? (
           <div className="flex flex-col items-center justify-center gap-8">
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-12 font-sans">
-              Temperature Measurement
+              Height Measurement
             </h1>
             <div className="relative w-64 h-64 flex items-center justify-center">
               <div className="absolute w-full h-full rounded-full border-8 border-[#00555340]"></div>
@@ -127,23 +148,33 @@ export default function TemperatureMeasurement() {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-center text-[#005553BF]">
-              Measuring Temperature...
+              Measuring Height...
               <br />
-              Keep your finger steady on the sensor
+              Stand Exactly below the Height Measurement Sensor
             </h2>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-8 w-full">
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-4 font-sans">
-              Your Temperature Measurement
+              Your Height Measurement
             </h1>
 
             <div className="flex flex-col items-center justify-center bg-white rounded-2xl p-8 shadow-lg w-full max-w-md">
               <div className="text-5xl font-bold text-[#005553BF] mb-2">
-                {temperature.fahrenheit} °F
+                {height.cm} cm
               </div>
               <div className="text-3xl text-[#005553BF] mb-6">
-                {temperature.celsius} °C
+                {height.feet}
+              </div>
+              <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#009995] to-[#005553] rounded-full"
+                  style={{ width: `${(height.cm / 200) * 100}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between w-full text-sm text-gray-600 mt-2">
+                <span>100cm</span>
+                <span>200cm</span>
               </div>
             </div>
 
@@ -151,7 +182,7 @@ export default function TemperatureMeasurement() {
               onClick={handleContinue}
               className="mt-8 px-12 py-4 rounded-full bg-[#005553BF] text-white text-2xl font-bold hover:bg-[#009f96] transition-colors duration-200 cursor-pointer shadow-lg"
             >
-              Continue to Oximeter Measurement
+              Continue to Weight Measurement
             </button>
           </div>
         )}
