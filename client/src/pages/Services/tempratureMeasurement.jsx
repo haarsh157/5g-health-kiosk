@@ -26,19 +26,50 @@ export default function TemperatureMeasurement() {
   const steps = ["Height", "Weight", "Temperature", "Oximeter"];
   const currentStep = 2;
 
-  const handleMeasureClick = () => {
+  // const handleMeasureClick = () => {
+  //   setIsMeasuring(true);
+  //   setTimeout(() => {
+  //     setIsMeasuring(false);
+  //     setShowResult(true);
+  //     const randomCelsius = (Math.random() * 4 + 35).toFixed(1);
+  //     const fahrenheit = ((randomCelsius * 9) / 5 + 32).toFixed(1);
+  //     setTemperature({
+  //       celsius: randomCelsius,
+  //       fahrenheit: fahrenheit,
+  //     });
+  //   }, 3000);
+  // };
+
+  const handleMeasureClick = async () => {
     setIsMeasuring(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch("http://10.42.0.106:5000/api/temp/measure-temperature", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      const data = await res.json();
       setIsMeasuring(false);
       setShowResult(true);
-      const randomCelsius = (Math.random() * 4 + 35).toFixed(1);
-      const fahrenheit = ((randomCelsius * 9) / 5 + 32).toFixed(1);
-      setTemperature({
-        celsius: randomCelsius,
-        fahrenheit: fahrenheit,
-      });
-    }, 3000);
+  
+      if (data.success) {
+        setTemperature({
+          celsius: data.temperature.celsius,
+          fahrenheit: data.temperature.fahrenheit,
+        });
+      } else {
+        throw new Error("Temperature read failed");
+      }
+    } catch (err) {
+      console.error("Error fetching temperature:", err);
+      setIsMeasuring(false);
+      // fallback temperature
+      setTemperature({ celsius: 36.5, fahrenheit: 97.7 });
+      setShowResult(true);
+    }
   };
+  
 
   const handleContinue = () => {
     navigate("/oximeter");

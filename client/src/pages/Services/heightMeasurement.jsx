@@ -23,19 +23,35 @@ export default function HeightMeasurement() {
   const steps = ["Height", "Weight", "Temperature", "Oximeter"];
   const currentStep = 0;
 
-  const handleMeasureClick = () => {
+  const handleMeasureClick = async () => {
     setIsMeasuring(true);
-    setTimeout(() => {
-      setIsMeasuring(false);
-      setShowResult(true);
-      const randomCm = Math.floor(Math.random() * 50) + 150;
-      const feet = Math.floor(randomCm / 30.48);
-      const inches = Math.round((randomCm % 30.48) / 2.54);
+    // setTimeout(() => {
+    //   setIsMeasuring(false);
+    //   setShowResult(true);
+    //   const randomCm = Math.floor(Math.random() * 50) + 150;
+    //   const feet = Math.floor(randomCm / 30.48);
+    //   const inches = Math.round((randomCm % 30.48) / 2.54);
+    //   setHeight({
+    //     cm: randomCm,
+    //     feet: `${feet} feet ${inches} inches`,
+    //   });
+    // }, 3000);
+    try {
+      const response = await fetch('http://10.42.0.106:5000/api/height/measure-height');
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Unknown error occurred');
+      }
       setHeight({
-        cm: randomCm,
-        feet: `${feet} feet ${inches} inches`,
+        cm: data.cm,
+        feet: data.feet,
       });
-    }, 3000);
+      setShowResult(true);
+    } catch (error) {
+      console.error('Error measuring height:', error);
+      alert('Failed to measure height. Please try again.');
+    }
+    setIsMeasuring(false);
   };
 
   const handleContinue = () => {
