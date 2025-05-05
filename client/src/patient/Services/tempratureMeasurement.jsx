@@ -4,6 +4,8 @@ import lang from "../../assets/Vector.png";
 import userTemperature from "../../assets/Group 9.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
 
+const API_BASE_URL = "https://192.168.212.51:5000";
+
 export default function TemperatureMeasurement() {
   const navigate = useNavigate();
 
@@ -43,7 +45,7 @@ export default function TemperatureMeasurement() {
   const handleMeasureClick = async () => {
     setIsMeasuring(true);
     try {
-      const res = await fetch("http://10.42.0.106:5000/api/temp/measure-temperature", {
+      const res = await fetch(`${API_BASE_URL}/api/temp/measure-temperature`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

@@ -4,6 +4,8 @@ import lang from "../../assets/Vector.png";
 import userheight from "../../assets/height.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
 
+const API_BASE_URL = "https://192.168.212.51:5000";
+
 export default function HeightMeasurement() {
   const navigate = useNavigate();
 
@@ -37,10 +39,10 @@ export default function HeightMeasurement() {
     //   });
     // }, 3000);
     try {
-      const response = await fetch('http://10.42.0.106:5000/api/height/measure-height');
+      const response = await fetch(`${API_BASE_URL}/api/height/measure-height`);
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'Unknown error occurred');
+        throw new Error('Unknown error occurred');
       }
       setHeight({
         cm: data.cm,
