@@ -15,7 +15,7 @@ import ConsultationPage from './pages/Services/consultation';
 import DoctorHomepage from './doctor/home';
 import DoctorLogin from './doctor/doctorLogin';
 import DoctorSignup from './doctor/doctorSignup';
-
+import PatientInfo from './doctor/Services/PatientInfo.jsx';
 
 function App() {
   return (
@@ -37,6 +37,7 @@ function App() {
           <Route path="/doc" element={<DoctorHomepage />} />  
           <Route path="/doctor-login" element={<DoctorLogin />} />
           <Route path="/doctor-signup" element={<DoctorSignup />} />
+          <Route path="/patient-info/:patientId" element = {<PatientInfo/>} />
         </Routes>
       </Router>
     </div>
