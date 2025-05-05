@@ -6,6 +6,8 @@ require('dotenv').config();
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
+const heightRoutes = require('./routes/heightRoutes');
+const tempRoutes = require('./routes/tempRoutes');
 
 const app = express();
 
@@ -16,6 +18,8 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/height', heightRoutes);
+app.use('/api/temp', tempRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
