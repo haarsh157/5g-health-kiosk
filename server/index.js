@@ -1,37 +1,67 @@
 const express = require("express");
+const fs = require("fs");
+const https = require("https");
 const cors = require("cors");
 const { Server } = require("socket.io");
 require("dotenv").config();
 
-// Import routes
-const authRoutes = require("./routes/authRoutes");
-const doctorRoutes = require("./routes/doctorRoutes");
-const getDoctor = require("./routes/getDoctors");
-const consultations = require("./routes/consultations");
+// SSL Configuration
+const sslOptions = {
+  key: fs.readFileSync("./key.pem"),
+  cert: fs.readFileSync("./cert.pem"),
+  rejectUnauthorized: false // For development only (remove in production)
+};
 
-const io = new Server({
-  cors: true,
-});
 const app = express();
+const server = https.createServer(sslOptions, app);
 
-// Middleware
-app.use(cors());
+// Enhanced CORS Configuration
+const corsOptions = {
+  origin: [
+    "https://192.168.212.51:3000",
+    "https://localhost:3000",
+    "http://localhost:3000"
+  ],
+  credentials: true,
+  methods: ["GET", "POST"]
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/doctors", doctorRoutes);
-app.use("/api/getDoctor", getDoctor);
-app.use("/api/consultations", consultations);
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/doctors", require("./routes/doctorRoutes"));
+app.use("/api/getDoctor", require("./routes/getDoctors"));
+app.use("/api/consultations", require("./routes/consultations"));
 
+app.get("/", (req, res) => {
+  res.send("✅ HTTPS Server is up and running!");
+});
+
+// Socket.IO Server with enhanced configuration
+const io = new Server(server, {
+  cors: corsOptions,
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
+
+// Socket mappings
 const emailToSocketMap = new Map();
 const socketToEmailMap = new Map();
 
+// Socket.IO Connection Handling
 io.on("connection", (socket) => {
-  console.log("new connection");
-  socket.on("join-room", (data) => {
-    const { roomId, userId } = data;
-    console.log("user", userId, "joined room", roomId);
+  console.log("🔌 New socket connected:", socket.id);
+
+  socket.on("error", (error) => {
+    console.error("Socket error:", error);
+  });
+
+  socket.on("join-room", ({ roomId, userId }) => {
+    console.log(`👤 ${userId} joined room ${roomId}`);
     emailToSocketMap.set(userId, socket.id);
     socketToEmailMap.set(socket.id, userId);
     socket.join(roomId);
@@ -39,27 +69,50 @@ io.on("connection", (socket) => {
     socket.broadcast.to(roomId).emit("user-joined", { userId });
   });
 
-  socket.on("call-user", (data) => {
-    const { userId, offer } = data;
+  socket.on("call-user", ({ userId, offer }) => {
     const fromEmail = socketToEmailMap.get(socket.id);
-    const socketId = emailToSocketMap.get(userId);
-    socket.to(socketId).emit("incoming-call", { from: fromEmail, offer });
+    const targetSocketId = emailToSocketMap.get(userId);
+    if (targetSocketId) {
+      socket.to(targetSocketId).emit("incoming-call", { 
+        from: fromEmail, 
+        offer 
+      });
+    } else {
+      console.error(`Target user ${userId} not found`);
+      socket.emit("call-error", { 
+        message: "User not available" 
+      });
+    }
   });
 
-  socket.on("call-accepted", (data) => {
-    const { userId, ans } = data;
-    const socketId = emailToSocketMap.get(userId);
-    socket.to(socketId).emit("call-accepted", { ans });
+  socket.on("call-accepted", ({ userId, ans }) => {
+    const targetSocketId = emailToSocketMap.get(userId);
+    if (targetSocketId) {
+      socket.to(targetSocketId).emit("call-accepted", { ans });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    const userEmail = socketToEmailMap.get(socket.id);
+    if (userEmail) {
+      emailToSocketMap.delete(userEmail);
+      socketToEmailMap.delete(socket.id);
+      console.log(`❌ ${userEmail} disconnected`);
+    }
   });
 });
 
-// Basic route
-app.get("/", (req, res) => {
-  res.send("Server is running!");
+// Server Error Handling
+server.on("error", (error) => {
+  console.error("Server error:", error);
 });
 
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+});
+
+// Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 HTTPS Server running at https://localhost:${PORT}`);
 });
-io.listen(8000);
