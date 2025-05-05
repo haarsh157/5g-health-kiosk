@@ -4,7 +4,7 @@ import lang from "../../assets/Vector.png";
 import userTemperature from "../../assets/Group 9.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
 
-const API_BASE_URL = "https://192.168.212.51:5000";
+const API_BASE_URL = "https://192.168.37.51:5000";
 
 export default function TemperatureMeasurement() {
   const navigate = useNavigate();
@@ -50,11 +50,11 @@ export default function TemperatureMeasurement() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       const data = await res.json();
       setIsMeasuring(false);
       setShowResult(true);
-  
+
       if (data.success) {
         setTemperature({
           celsius: data.temperature.celsius,
@@ -71,7 +71,6 @@ export default function TemperatureMeasurement() {
       setShowResult(true);
     }
   };
-  
 
   const handleContinue = () => {
     navigate("/oximeter");

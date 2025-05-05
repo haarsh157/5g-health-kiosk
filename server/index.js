@@ -25,6 +25,7 @@ const server = https.createServer(sslOptions, app);
 // Enhanced CORS Configuration
 const corsOptions = {
   origin: [
+    "https://192.168.37.51:3000",
     "https://192.168.212.51:3000",
     "https://localhost:3000",
     "http://localhost:3000"
