@@ -8,17 +8,12 @@ import back from "../assets/mdi_arrow-back-circle.png";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [loginData, setLoginData] = useState({
-    identifier: "",
-    password: "",
-  });
+  const [loginData, setLoginData] = useState({ identifier: "", password: "" });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const API_BASE_URL = "http://localhost:5000";
-  // const API_BASE_URL = import.meta.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+  const API_BASE_URL = "https://192.168.212.51:5000";
 
-  // Check if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
@@ -42,30 +37,21 @@ export default function Login() {
       const isPhoneNumber = /^\d+$/.test(loginData.identifier);
       const isEmail = loginData.identifier.includes("@");
 
-      let loginPayload = {
-        password: loginData.password,
-      };
-
-      if (isPhoneNumber) {
-        loginPayload.phoneNumber = loginData.identifier;
-      } else if (isEmail) {
-        loginPayload.email = loginData.identifier;
-      } else {
-        loginPayload.username = loginData.identifier;
-      }
+      let loginPayload = { password: loginData.password };
+      if (isPhoneNumber) loginPayload.phoneNumber = loginData.identifier;
+      else if (isEmail) loginPayload.email = loginData.identifier;
+      else loginPayload.username = loginData.identifier;
 
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(loginPayload),
       });
 
       const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(
-          data.error || "Login failed. Please check your credentials."
-        );
+        throw new Error(data.error || "Login failed.");
       }
 
       localStorage.setItem("token", data.token);
@@ -83,7 +69,6 @@ export default function Login() {
     <div className="fixed inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-teal-50">
       <div className="w-full max-w-xl p-12 rounded-xl bg-[#00999524] backdrop-blur-sm border border-white/30 shadow-2xl flex flex-col items-center min-h-[600px] justify-center">
         <img src={user} alt="user" className="w-32 h-32 mb-8" />
-
         <form
           onSubmit={handleSubmit}
           className="w-full space-y-8 max-w-md mx-auto"
@@ -93,46 +78,39 @@ export default function Login() {
               {error}
             </div>
           )}
-
           <div className="relative">
-            <div className="relative">
-              <img
-                src={miniuser}
-                alt="miniuser"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
-              />
-              <input
-                type="text"
-                name="identifier"
-                className="w-full pl-10 pr-4 py-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f96] focus:border-transparent bg-blue-50"
-                placeholder="Enter Username, Ph. Number or Email Id."
-                value={loginData.identifier}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+            <img
+              src={miniuser}
+              alt="miniuser"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+            />
+            <input
+              type="text"
+              name="identifier"
+              className="w-full pl-10 pr-4 py-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f96] focus:border-transparent bg-blue-50"
+              placeholder="Enter Username, Ph. Number or Email Id."
+              value={loginData.identifier}
+              onChange={handleInputChange}
+              required
+            />
           </div>
-
           <div className="relative">
-            <div className="relative">
-              <img
-                src={pass}
-                alt="pass"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
-              />
-              <input
-                type="password"
-                name="password"
-                className="w-full pl-10 pr-4 py-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f96] focus:border-transparent bg-blue-50"
-                placeholder="Password"
-                value={loginData.password}
-                onChange={handleInputChange}
-                minLength="6"
-                required
-              />
-            </div>
+            <img
+              src={pass}
+              alt="pass"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+            />
+            <input
+              type="password"
+              name="password"
+              className="w-full pl-10 pr-4 py-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f96] focus:border-transparent bg-blue-50"
+              placeholder="Password"
+              value={loginData.password}
+              onChange={handleInputChange}
+              minLength="6"
+              required
+            />
           </div>
-
           <button
             type="submit"
             disabled={isLoading}
@@ -144,14 +122,12 @@ export default function Login() {
           </button>
         </form>
       </div>
-
       <button
         onClick={() => navigate("/health-kiosk")}
         className="fixed bottom-8 left-8 p-2 rounded-full hover:bg-[#009f96]/20 transition-colors duration-200 cursor-pointer"
       >
         <img src={back} alt="Back" className="w-16 h-16" />
       </button>
-
       <button className="fixed bottom-8 right-8 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 text-2xl cursor-pointer">
         <img src={lang} alt="Language" className="w-5 h-5" />
         <span>Change Language</span>

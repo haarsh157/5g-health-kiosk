@@ -5,31 +5,43 @@ const PeerContext = React.createContext(null);
 export const usePeer = () => React.useContext(PeerContext);
 
 export const PeerProvider = (props) => {
-  const [remoteStream, setRemoteSAtream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
   const peer = useMemo(
     () =>
       new RTCPeerConnection({
-        iceServers: [{ url: "stun:stun2.1.google.com:19302" }],
+        iceServers: [{ urls: "stun:stun2.l.google.com:19302" }],
       }),
     []
   );
 
   const createOffer = async () => {
-    const offer = await peer.createOffer();
-    await peer.setLocalDescription(offer);
-    return offer;
+    try {
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      console.log("Created offer:", offer);
+      return offer;
+    } catch (error) {
+      console.error("Error creating offer:", error);
+      throw error;
+    }
   };
 
   const createAnswer = async (offer) => {
-    await peer.setRemoteDescription(offer);
-    const answer = await peer.createAnswer();
-    await peer.setLocalDescription(answer);
-    return answer;
+    try {
+      await peer.setRemoteDescription(offer);
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+      console.log("Created answer:", answer);
+      return answer;
+    } catch (error) {
+      console.error("Error creating answer:", error);
+      throw error;
+    }
   };
 
   const setRemoteAnswer = async (ans) => {
     console.log("Before setting remote answer:", peer.signalingState);
-  
+
     if (peer.signalingState === "have-local-offer") {
       try {
         await peer.setRemoteDescription(ans);
@@ -37,8 +49,6 @@ export const PeerProvider = (props) => {
       } catch (error) {
         console.error("Failed to set remote answer:", error);
       }
-    } else if (peer.signalingState === "stable") {
-      console.log("Peer is already stable, skipping setting remote answer.");
     } else {
       console.warn(
         "Unexpected signaling state while setting remote answer:",
@@ -46,26 +56,28 @@ export const PeerProvider = (props) => {
       );
     }
   };
-  
-  
-  
 
   const sendStream = async (stream) => {
-    const tracks = stream.getTracks();
-    for (const track of tracks) {
-      peer.addTrack(track, stream);
+    try {
+      const tracks = stream.getTracks();
+      for (const track of tracks) {
+        peer.addTrack(track, stream);
+      }
+    } catch (error) {
+      console.error("Error sending stream:", error);
     }
   };
 
   const handleTrackEvent = useCallback((e) => {
     const streams = e.streams;
-    setRemoteSAtream(streams[0]);
+    setRemoteStream(streams[0]);
   }, []);
 
   useEffect(() => {
     peer.addEventListener("track", handleTrackEvent);
     return () => {
       peer.removeEventListener("track", handleTrackEvent);
+      setRemoteStream(null);
     };
   }, [handleTrackEvent, peer]);
 
