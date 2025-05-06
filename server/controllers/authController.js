@@ -107,4 +107,36 @@ const logoutUser = (req, res) => {
   }
 };
 
-module.exports = { signup, login, verifyToken,logoutUser };
+const getAllPatients = async (req, res) => {
+  try {
+    const patients = await prisma.user.findMany({
+      where: {
+        role: 'PATIENT'
+      }
+    });
+
+    res.status(200).json(patients);
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+const getPatientMeasurements = async (req, res) => {
+  const { patientId } = req.params;
+
+  try {
+    const measurements = await prisma.healthMeasurement.findMany({
+      where: {
+        patientId: String(patientId)
+      }
+    });
+
+    res.status(200).json(measurements);
+  } catch (error) {
+    console.error('Error fetching measurements:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = { signup, login, verifyToken,logoutUser, getAllPatients, getPatientMeasurements };

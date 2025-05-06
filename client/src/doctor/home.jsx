@@ -44,9 +44,8 @@ const DoctorDashboard = () => {
   const [stats, setStats] = useState(null);
   const { socket } = useSocket();
 
-  const API_BASE_URL = "https://192.168.37.51:5000";
+  const API_BASE_URL = "https://192.168.185.99:5000";
 
-  // Check authentication on component mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user")) || doctor;
@@ -174,7 +173,7 @@ const DoctorDashboard = () => {
   };
 
   return (
-    <div className="h-screen w-screen flex bg-gray-50">
+    <div className="flex h-screen bg-[#F5F5F5]">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 p-4 flex flex-col">
         <div className="mb-8 flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
