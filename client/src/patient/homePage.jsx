@@ -27,7 +27,7 @@ export default function Homepage() {
     { id: 2, name: "Weight", icon: weight, path: "/weight" },
     { id: 3, name: "Temperature", icon: temp, path: "/temperature" },
     { id: 4, name: "Oximeter", icon: oximeter, path: "/oximeter" },
-    { id: 5, name: "Medical Tests", icon: tests, path: "/tests" },
+    { id: 5, name: "Blood Pressure", icon: tests, path: "/tests" },
     { id: 6, name: "Doctor Consultation", icon: doctor, path: "/consultation" },
   ];
 

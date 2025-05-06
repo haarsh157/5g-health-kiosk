@@ -44,7 +44,7 @@ const DoctorDashboard = () => {
   const [stats, setStats] = useState(null);
   const { socket } = useSocket();
 
-  const API_BASE_URL = "https://192.168.37.51:5000";
+  const API_BASE_URL = "https://192.168.185.99:5000";
 
   useEffect(() => {
     const token = localStorage.getItem("token");
