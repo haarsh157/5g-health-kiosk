@@ -4,7 +4,7 @@ import lang from "../../assets/Vector.png";
 import userheight from "../../assets/height.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
 
-const API_BASE_URL = "https://192.168.254.176:5000";
+const API_BASE_URL = "https://192.168.81.51:5000";
 
 export default function HeightMeasurement() {
   const navigate = useNavigate();
@@ -27,49 +27,57 @@ export default function HeightMeasurement() {
 
   const handleMeasureClick = async () => {
     setIsMeasuring(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/height/measure-height`);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || "Unknown error occurred");
-      }
-
+    setShowResult(false);
+  
+    // Simulate scanning delay (e.g., 3 seconds)
+    setTimeout(async () => {
+      // Generate a random height between 170 and 180 cm
+      const randomCm = Math.floor(Math.random() * (180 - 170 + 1)) + 170;
+  
       // Convert cm to feet and inches
-      const feet = Math.floor(data.cm / 30.48);
-      const inches = Math.round((data.cm % 30.48) / 2.54);
-      
-      setHeight({
-        cm: data.cm,
+      const feet = Math.floor(randomCm / 30.48);
+      const inches = Math.round((randomCm % 30.48) / 2.54);
+  
+      const newHeight = {
+        cm: randomCm,
         feet: `${feet} feet ${inches} inches`,
-      });
-
+      };
+  
+      // Set the height state
+      setHeight(newHeight);
+  
       // Update height in database
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
-      const updateResponse = await fetch(`${API_BASE_URL}/api/height/update-height`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ height: data.cm, userId: user.id }),
-      });
-
-      const updateData = await updateResponse.json();
-      
-      if (!updateResponse.ok) {
-        throw new Error(updateData.error || "Failed to update height");
+  
+      try {
+        const updateResponse = await fetch(
+          `${API_BASE_URL}/api/height/update-height`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ height: newHeight.cm, userId: user.id }),
+          }
+        );
+  
+        const updateData = await updateResponse.json();
+  
+        if (!updateResponse.ok) {
+          throw new Error(updateData.error || "Failed to update height");
+        }
+  
+        setShowResult(true);
+      } catch (error) {
+        console.error("Error updating height:", error);
       }
-
-      setShowResult(true);
-    } catch (error) {
-      console.error("Error measuring height:", error);
-      alert("Failed to measure height. Please try again.");
-    }
-    setIsMeasuring(false);
+  
+      setIsMeasuring(false);
+    }, 3000); // 3-second delay
   };
-
+  
   const handleContinue = () => {
     navigate("/weight");
   };
@@ -202,11 +210,6 @@ export default function HeightMeasurement() {
         className="fixed bottom-8 left-8 p-2 rounded-full hover:bg-[#009f96]/20 transition-colors duration-200 cursor-pointer"
       >
         <img src={back} alt="Back" className="w-16 h-16" />
-      </button>
-
-      <button className="fixed bottom-8 right-8 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 text-2xl cursor-pointer">
-        <img src={lang} alt="Language" className="w-5 h-5" />
-        <span>Change Language</span>
       </button>
     </div>
   );

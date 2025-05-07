@@ -8,7 +8,7 @@ import temp from "../assets/carbon_temperature-feels-like.png";
 import tests from "../assets/fluent-mdl2_test-case.png";
 import doctor from "../assets/fontisto_doctor.png";
 
-const API_BASE_URL = "https://192.168.254.176:5000";
+const API_BASE_URL = "https://192.168.81.51:5000";
 
 export default function Homepage() {
   const navigate = useNavigate();
@@ -119,10 +119,6 @@ export default function Homepage() {
         </div>
       </div>
 
-      <button className="fixed bottom-8 right-8 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 text-2xl cursor-pointer">
-        <img src={lang} alt="Language" className="w-5 h-5" />
-        <span>Change Language</span>
-      </button>
     </div>
   );
 }

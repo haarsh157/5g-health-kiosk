@@ -16,7 +16,7 @@ const DoctorSignup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState("");
 
-  const API_BASE_URL = "http://localhost:5000";
+  const API_BASE_URL = "https://192.168.81.51:5000";
 
   // Check if doctor is already logged in
   useEffect(() => {

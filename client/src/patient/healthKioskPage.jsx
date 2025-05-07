@@ -45,10 +45,6 @@ export default function HealthKioskPage() {
         </div>
       </div>
 
-      <button className="fixed bottom-8 right-8 flex items-center gap-2 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 cursor-pointer text-2xl">
-        <img src={lang} alt="Language icon" className="h-5 w-5" />
-        <span>Change Language</span>
-      </button>
     </div>
   );
 }

@@ -29,7 +29,7 @@ export default function WeightMeasurement() {
       setIsMeasuring(false);
       setShowResult(true);
       // Generate random weight between 40-120kg for demo
-      const randomKg = Math.floor(Math.random() * 80) + 40;
+      const randomKg = Math.floor(Math.random() * 21) + 60;
       setWeight(randomKg);
     }, 3000);
   };
@@ -165,10 +165,6 @@ export default function WeightMeasurement() {
         <img src={back} alt="Back" className="w-16 h-16" />
       </button>
 
-      <button className="fixed bottom-8 right-8 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 text-2xl cursor-pointer">
-        <img src={lang} alt="Language" className="w-5 h-5" />
-        <span>Change Language</span>
-      </button>
     </div>
   );
 }

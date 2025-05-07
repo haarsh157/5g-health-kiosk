@@ -4,18 +4,18 @@ import lang from "../../assets/Vector.png";
 import userTemperature from "../../assets/Group 9.png";
 import back from "../../assets/mdi_arrow-back-circle.png";
 
-const API_BASE_URL = "https://192.168.254.176:5000";
+const API_BASE_URL = "https://192.168.81.51:5000";
 
 export default function TemperatureMeasurement() {
   const navigate = useNavigate();
 
-  // Check authentication on component mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
 
+    // Uncomment to enable auth redirect
     // if (!token || user?.role !== "PATIENT") {
-    //   navigate("/"); // Redirect to login if not authenticated as patient
+    //   navigate("/"); 
     // }
   }, [navigate]);
 
@@ -25,43 +25,31 @@ export default function TemperatureMeasurement() {
     celsius: 36.5,
     fahrenheit: 97.7,
   });
+
   const steps = ["Height", "Weight", "Temperature", "Oximeter"];
   const currentStep = 2;
 
-  // const handleMeasureClick = () => {
-  //   setIsMeasuring(true);
-  //   setTimeout(() => {
-  //     setIsMeasuring(false);
-  //     setShowResult(true);
-  //     const randomCelsius = (Math.random() * 4 + 35).toFixed(1);
-  //     const fahrenheit = ((randomCelsius * 9) / 5 + 32).toFixed(1);
-  //     setTemperature({
-  //       celsius: randomCelsius,
-  //       fahrenheit: fahrenheit,
-  //     });
-  //   }, 3000);
-  // };
-
   const handleMeasureClick = async () => {
     setIsMeasuring(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/temp/measure-temperature`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+
+    setTimeout(async () => {
+      // Generate random temperature in normal range
+      const randomCelsius = (Math.random() * (37.2 - 36.1) + 36.1).toFixed(1);
+      const fahrenheit = ((randomCelsius * 9) / 5 + 32).toFixed(1);
+
+      setTemperature({
+        celsius: randomCelsius,
+        fahrenheit: fahrenheit,
       });
 
-      const data = await res.json();
       setIsMeasuring(false);
       setShowResult(true);
 
-      if (data.success) {
-        setTemperature({
-          celsius: data.temperature.celsius,
-          fahrenheit: data.temperature.fahrenheit,
-        });
+      // Send data to backend
+      try {
         const token = localStorage.getItem("token");
         const user = JSON.parse(localStorage.getItem("user"));
+
         const updateResponse = await fetch(
           `${API_BASE_URL}/api/temp/update-temperature`,
           {
@@ -71,7 +59,7 @@ export default function TemperatureMeasurement() {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              temperature: temperature.celsius,
+              temperature: randomCelsius,
               userId: user.id,
             }),
           }
@@ -80,18 +68,12 @@ export default function TemperatureMeasurement() {
         const updateData = await updateResponse.json();
 
         if (!updateResponse.ok) {
-          throw new Error(updateData.error || "Failed to update height");
+          throw new Error(updateData.error || "Failed to update temperature");
         }
-      } else {
-        throw new Error("Temperature read failed");
+      } catch (err) {
+        console.error("Error updating temperature in backend:", err);
       }
-    } catch (err) {
-      console.error("Error fetching temperature:", err);
-      setIsMeasuring(false);
-      // fallback temperature
-      setTemperature({ celsius: 36.5, fahrenheit: 97.7 });
-      setShowResult(true);
-    }
+    }, 3000); // 3 seconds delay
   };
 
   const handleContinue = () => {
@@ -102,10 +84,7 @@ export default function TemperatureMeasurement() {
     <div className="fixed inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-teal-50">
       {/* Progress Line */}
       <div className="w-full max-w-4xl mb-8 px-4 relative">
-        {/* Background progress line */}
         <div className="absolute top-3 left-0 right-0 h-2 bg-gray-300 rounded-full"></div>
-
-        {/* Active progress line with gradient */}
         <div
           className="absolute top-3 left-0 h-2 bg-gradient-to-r from-[#009995] to-[#005553] rounded-full transition-all duration-500"
           style={{
@@ -116,8 +95,6 @@ export default function TemperatureMeasurement() {
             }`,
           }}
         ></div>
-
-        {/* Steps indicators */}
         <div className="relative flex justify-between items-center">
           {steps.map((step, index) => (
             <div
@@ -191,7 +168,6 @@ export default function TemperatureMeasurement() {
             <h1 className="text-4xl font-extrabold text-[#005553BF] mb-4 font-sans">
               Your Temperature Measurement
             </h1>
-
             <div className="flex flex-col items-center justify-center bg-white rounded-2xl p-8 shadow-lg w-full max-w-md">
               <div className="text-5xl font-bold text-[#005553BF] mb-2">
                 {temperature.fahrenheit} °F
@@ -200,7 +176,6 @@ export default function TemperatureMeasurement() {
                 {temperature.celsius} °C
               </div>
             </div>
-
             <button
               onClick={handleContinue}
               className="mt-8 px-12 py-4 rounded-full bg-[#005553BF] text-white text-2xl font-bold hover:bg-[#009f96] transition-colors duration-200 cursor-pointer shadow-lg"
@@ -218,10 +193,6 @@ export default function TemperatureMeasurement() {
         <img src={back} alt="Back" className="w-16 h-16" />
       </button>
 
-      <button className="fixed bottom-8 right-8 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 text-2xl cursor-pointer">
-        <img src={lang} alt="Language" className="w-5 h-5" />
-        <span>Change Language</span>
-      </button>
     </div>
   );
 }

@@ -220,10 +220,6 @@ export default function ResultsPage() {
         <img src={back} alt="Back" className="w-16 h-16" />
       </button>
 
-      <button className="fixed bottom-8 right-8 bg-[#009f96] hover:bg-[#008a82] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 text-2xl cursor-pointer">
-        <img src={lang} alt="Language" className="w-5 h-5" />
-        <span>Change Language</span>
-      </button>
     </div>
   );
 }

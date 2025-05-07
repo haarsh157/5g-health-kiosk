@@ -12,7 +12,7 @@ export default function ConsultationPage() {
   const [error, setError] = useState(null);
   const { socket } = useSocket();
 
-  const API_BASE_URL = "http://localhost:5000";
+  const API_BASE_URL = "https://192.168.81.51:5000";
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -193,10 +193,6 @@ export default function ConsultationPage() {
         <img src={back} alt="Back" className="w-20 h-20" />
       </button>
 
-      <button className="fixed bottom-10 right-10 bg-[#009f96] hover:bg-[#008a82] text-white font-bold py-4 px-8 rounded-full shadow-xl transition-colors duration-200 flex items-center gap-3 text-3xl cursor-pointer">
-        <img src={lang} alt="Language" className="w-8 h-8" />
-        <span>Change Language</span>
-      </button>
     </div>
   );
 }

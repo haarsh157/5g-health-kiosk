@@ -19,14 +19,14 @@ const sslOptions = {
 };
 
 const app = express();
-// const server = https.createServer(sslOptions, app);
+const server = https.createServer(sslOptions, app);
 
 // Enhanced CORS Configuration
 const corsOptions = {
   origin: [
     "https://192.168.37.51:3000",
-    "https://192.168.212.51:3000",
-    "https://192.168.254.51:3000",
+    "https://192.168.81.51:3000",
+    "https://192.168.107.51:3000",
     "https://10.42.0.23:3000",
     "https://192.168.254.176:3000",
     "http://localhost:3000",
@@ -53,15 +53,15 @@ app.get("/", (req, res) => {
 });
 
 // Socket.IO Server with enhanced configuration
-// const io = new Server(server, {
-//   cors: corsOptions,
-//   transports: ['websocket', 'polling'],
-//   allowEIO3: true,
-//   pingTimeout: 60000,
-//   pingInterval: 25000
-// });
+const io = new Server(server, {
+  cors: corsOptions,
+  transports: ["websocket", "polling"],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
+});
 
-const io = new Server({ cors: true });
+// const io = new Server({ cors: true });
 
 // Socket mappings
 const emailToSocketMap = new Map();
@@ -140,9 +140,9 @@ io.on("connection", (socket) => {
 });
 
 // Server Error Handling
-// server.on("error", (error) => {
-//   console.error("Server error:", error);
-// });
+server.on("error", (error) => {
+  console.error("Server error:", error);
+});
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error);
@@ -150,10 +150,10 @@ process.on("uncaughtException", (error) => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-// server.listen(PORT, "0.0.0.0", () => {
-//   console.log(`🚀 HTTPS Server running at https://localhost:${PORT}`);
-// });
-
-app.listen(PORT, () => {
-  console.log("server listening on port 5000");
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 HTTPS Server running at https://localhost:${PORT}`);
 });
+
+// app.listen(PORT, () => {
+//   console.log("server listening on port 5000");
+// });
